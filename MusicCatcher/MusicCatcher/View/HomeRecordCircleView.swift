@@ -9,15 +9,17 @@ import UIKit
 
 class HomeRecordCircleView: UIView {
     
+    ///  홈화면 시작할 때 누르는 CircleView
+    // TODO: gradient 색상 적용하기
+    
     lazy var homeReordCircleView: UIView = {
         let circleView = UIView()
         circleView.backgroundColor = .pointColor
-        circleView.frame = CGRect(x: 0, y: 0, width: screenWidth / 1.5, height: screenWidth / 1.5)
-        circleView.layer.cornerRadius = self.frame.width / 2
+        circleView.frame = CGRect(x: 0, y: 0, width: 216, height: 216)
+        circleView.layer.cornerRadius = 108
         circleView.clipsToBounds = true
         circleView.layer.masksToBounds = true
         return circleView
-        
     }()
     
     override init(frame: CGRect) {
@@ -35,11 +37,7 @@ class HomeRecordCircleView: UIView {
         
         homeReordCircleView.anchor(top: self.topAnchor,
                                    leading: self.leadingAnchor,
-                                   bottom: self.bottomAnchor, trailing: self.trailingAnchor)
-        
-        homeReordCircleView.setWidth(width: screenWidth / 1.5)
-        homeReordCircleView.setHeight(height: screenHeight / 1.5)
+                                   bottom: self.bottomAnchor,
+                                   trailing: self.trailingAnchor)
     }
-
-    
 }

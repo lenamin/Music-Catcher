@@ -18,6 +18,9 @@
 		BF1838F329DD8664003B8C37 /* ReadyRecordViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF1838F229DD8664003B8C37 /* ReadyRecordViewController.swift */; };
 		BF1838F629DD86D1003B8C37 /* View+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF1838F529DD86D1003B8C37 /* View+Extension.swift */; };
 		BF1838F829DD86E0003B8C37 /* Color+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF1838F729DD86E0003B8C37 /* Color+Extension.swift */; };
+		BF1838FB29DD889F003B8C37 /* HomeRecordCircleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF1838FA29DD889F003B8C37 /* HomeRecordCircleView.swift */; };
+		BF1838FE29DD89FE003B8C37 /* Literal.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF1838FD29DD89FE003B8C37 /* Literal.swift */; };
+		BF18390029DD90D2003B8C37 /* ImageView+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF1838FF29DD90D2003B8C37 /* ImageView+Extension.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -53,6 +56,9 @@
 		BF1838F229DD8664003B8C37 /* ReadyRecordViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadyRecordViewController.swift; sourceTree = "<group>"; };
 		BF1838F529DD86D1003B8C37 /* View+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+Extension.swift"; sourceTree = "<group>"; };
 		BF1838F729DD86E0003B8C37 /* Color+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Extension.swift"; sourceTree = "<group>"; };
+		BF1838FA29DD889F003B8C37 /* HomeRecordCircleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeRecordCircleView.swift; sourceTree = "<group>"; };
+		BF1838FD29DD89FE003B8C37 /* Literal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Literal.swift; sourceTree = "<group>"; };
+		BF1838FF29DD90D2003B8C37 /* ImageView+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ImageView+Extension.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -103,6 +109,7 @@
 		BF1838BD29DD85BD003B8C37 /* MusicCatcher */ = {
 			isa = PBXGroup;
 			children = (
+				BF1838F929DD8878003B8C37 /* ViewController */,
 				BF1838F429DD86C6003B8C37 /* Extension */,
 				BF1838F129DD861C003B8C37 /* Manager */,
 				BF1838F029DD8614003B8C37 /* Resource */,
@@ -133,8 +140,10 @@
 		BF1838EE29DD8607003B8C37 /* Global */ = {
 			isa = PBXGroup;
 			children = (
+				BF1838C929DD85BE003B8C37 /* LaunchScreen.storyboard */,
 				BF1838BE29DD85BD003B8C37 /* AppDelegate.swift */,
 				BF1838C029DD85BD003B8C37 /* SceneDelegate.swift */,
+				BF1838FD29DD89FE003B8C37 /* Literal.swift */,
 			);
 			path = Global;
 			sourceTree = "<group>";
@@ -142,9 +151,7 @@
 		BF1838EF29DD860C003B8C37 /* View */ = {
 			isa = PBXGroup;
 			children = (
-				BF1838C229DD85BD003B8C37 /* ViewController.swift */,
-				BF1838C929DD85BE003B8C37 /* LaunchScreen.storyboard */,
-				BF1838F229DD8664003B8C37 /* ReadyRecordViewController.swift */,
+				BF1838FA29DD889F003B8C37 /* HomeRecordCircleView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -169,8 +176,18 @@
 			children = (
 				BF1838F529DD86D1003B8C37 /* View+Extension.swift */,
 				BF1838F729DD86E0003B8C37 /* Color+Extension.swift */,
+				BF1838FF29DD90D2003B8C37 /* ImageView+Extension.swift */,
 			);
 			path = Extension;
+			sourceTree = "<group>";
+		};
+		BF1838F929DD8878003B8C37 /* ViewController */ = {
+			isa = PBXGroup;
+			children = (
+				BF1838C229DD85BD003B8C37 /* ViewController.swift */,
+				BF1838F229DD8664003B8C37 /* ReadyRecordViewController.swift */,
+			);
+			path = ViewController;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -307,6 +324,9 @@
 				BF1838F829DD86E0003B8C37 /* Color+Extension.swift in Sources */,
 				BF1838BF29DD85BD003B8C37 /* AppDelegate.swift in Sources */,
 				BF1838F629DD86D1003B8C37 /* View+Extension.swift in Sources */,
+				BF18390029DD90D2003B8C37 /* ImageView+Extension.swift in Sources */,
+				BF1838FB29DD889F003B8C37 /* HomeRecordCircleView.swift in Sources */,
+				BF1838FE29DD89FE003B8C37 /* Literal.swift in Sources */,
 				BF1838C129DD85BD003B8C37 /* SceneDelegate.swift in Sources */,
 				BF1838F329DD8664003B8C37 /* ReadyRecordViewController.swift in Sources */,
 			);
