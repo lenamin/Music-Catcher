@@ -14,3 +14,8 @@ let screenHeight = UIScreen.main.bounds.height
 // MARK: image name
 
 let microphoneImageName: String = "microphone-white"
+
+// MARK: numbers
+
+let recordButtonWidth: Int = 216
+let recordButtonHeight: Int = 216
