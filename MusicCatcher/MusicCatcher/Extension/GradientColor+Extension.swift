@@ -5,7 +5,7 @@
 //  Created by Lena on 2023/04/06.
 //
 
-import UIKit.UIColor
+import UIKit
 
 extension UIView {
     
@@ -19,7 +19,7 @@ extension UIView {
         gradient.locations = [0.0, 1.0] // 이거 왜 필요하지?
         gradient.startPoint = startPointNumber
         gradient.endPoint = endPointNumber
-        gradient.frame = bounds
+        gradient.frame = self.bounds
         layer.addSublayer(gradient)
     }
 }
