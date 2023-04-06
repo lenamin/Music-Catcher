@@ -10,13 +10,12 @@ import UIKit
 class ReadyRecordViewController: UIViewController {
     
     // MARK: Properties
-    
-//    private var homeRecordCircleView = HomeRecordCircleView()
+
     private var recordButtonView = RecordButtonView()
+    
     private var microphoneImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.image = UIImage(named: microphoneImageName)
-        
         return imageView
     }()
     
@@ -24,18 +23,21 @@ class ReadyRecordViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        view.backgroundColor = .custombackgroundGrayColor
         view.addSubview(recordButtonView)
+        [recordButtonView].forEach { view.addSubview($0) }
+        
         recordButtonView.addSubview(microphoneImageView)
         configureLayout()
-        view.backgroundColor = .custombackgroundGrayColor
-        
     }
-    
+}
+
+extension ReadyRecordViewController {
     private func configureLayout() {
         recordButtonView.centerX(inView: view)
         recordButtonView.centerY(inView: view)
-        recordButtonView.setWidth(width: screenWidth / 1.8)
-        recordButtonView.setHeight(height: screenWidth / 1.8)
+        recordButtonView.setWidth(width: CGFloat(recordButtonWidth))
+        recordButtonView.setHeight(height: CGFloat(recordButtonHeight))
         
         microphoneImageView.centerX(inView: recordButtonView)
         microphoneImageView.centerY(inView: recordButtonView)
