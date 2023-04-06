@@ -33,7 +33,7 @@ extension UIColor {
     }
      */
     static var pointColor: UIColor {
-        return UIColor(rgb: 0xA822D7)
+        return UIColor(rgb: 0xC825C1)
     }
     static var custombackgroundGrayColor: UIColor {
         return UIColor(rgb: 0xFCFCFC)
