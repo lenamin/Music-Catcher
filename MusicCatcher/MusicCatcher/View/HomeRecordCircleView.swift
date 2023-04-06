@@ -5,6 +5,7 @@
 //  Created by Lena on 2023/04/05.
 //
 
+/*
 import UIKit
 
 class HomeRecordCircleView: UIView {
@@ -14,7 +15,6 @@ class HomeRecordCircleView: UIView {
     
     lazy var homeReordCircleView: UIView = {
         let circleView = UIView()
-        circleView.backgroundColor = .pointColor
         circleView.frame = CGRect(x: 0, y: 0, width: 216, height: 216)
         circleView.layer.cornerRadius = 108
         circleView.clipsToBounds = true
@@ -41,3 +41,4 @@ class HomeRecordCircleView: UIView {
                                    trailing: self.trailingAnchor)
     }
 }
+*/
