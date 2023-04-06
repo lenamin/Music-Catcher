@@ -9,19 +9,21 @@ import UIKit
 
 final class RecordButtonView: UIView {
     
-    ///  홈화면 시작할 때 누르는 CircleViewButton 
-    // TODO: gradient 색상 적용하기
-    
+    ///  홈화면 시작할 때 누르는 CircleViewButton
     lazy var homeReordCircleButton: UIButton = {
         let button = UIButton(frame: .zero)
-        button.backgroundColor = .pointColor
-        button.frame = CGRect(x: 0, y: 0, width: 216, height: 216)
-        button.layer.cornerRadius = 108
+        button.frame = CGRect(x: 0, y: 0, width: recordButtonWidth, height: recordButtonHeight)
+        button.layer.cornerRadius = CGFloat(recordButtonWidth / 2)
+        button.backgroundColor = nil
         button.clipsToBounds = true
         button.layer.masksToBounds = true
         button.addTarget(self,
                          action: #selector(startRecordButtonTapped(_:)),
                          for: .touchUpInside)
+        button.setGradientColor(firstColor: .pointColor,
+                                secondColor: .customGradientPurple,
+                                startPointNumber: CGPoint(x: 0.0, y: 0.0),
+                                endPointNumber: CGPoint(x: 0.0, y: 1.0))
         return button
     }()
     
@@ -43,7 +45,6 @@ final class RecordButtonView: UIView {
                                    bottom: self.bottomAnchor,
                                    trailing: self.trailingAnchor)
     }
-    
 }
 
 extension RecordButtonView {
