@@ -57,9 +57,6 @@ class TabBarController: UITabBarController, UITabBarControllerDelegate {
         // TODO: 파일, 즐겨찾기, 세팅 뷰컨트롤러 추가하기
         
         self.viewControllers = [recordViewTab, fileViewTab, favoriateTab, settingTab]
-        
-        
-           
     }
     
     override func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
