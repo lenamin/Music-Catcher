@@ -39,13 +39,13 @@ class TabBarController: UITabBarController, UITabBarControllerDelegate {
         
         fileViewTab.tabBarItem = fileViewTabBarItem
         
-        // favoriate tab
-        let favoriateTab = ReadyRecordViewController()
-        let favoriateTabBarItem = UITabBarItem(title: "favoriate",
-                                               image: heartImage,
-                                               selectedImage: heartFillImage)
+        // analysis
+        let analysisTab = ReadyRecordViewController()
+        let favoriateTabBarItem = UITabBarItem(title: "analysis",
+                                               image: analysisImage,
+                                               selectedImage: analysisImage)
         
-        favoriateTab.tabBarItem = favoriateTabBarItem
+        analysisTab.tabBarItem = favoriateTabBarItem
         
         // setting tab
         let settingTab = ReadyRecordViewController()
@@ -56,7 +56,7 @@ class TabBarController: UITabBarController, UITabBarControllerDelegate {
         settingTab.tabBarItem = settingViewTabBarItem
         // TODO: 파일, 즐겨찾기, 세팅 뷰컨트롤러 추가하기
         
-        self.viewControllers = [recordViewTab, fileViewTab, favoriateTab, settingTab]
+        self.viewControllers = [recordViewTab, fileViewTab, analysisTab, settingTab]
     }
     
     override func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {

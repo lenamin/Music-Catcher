@@ -22,8 +22,7 @@ let micFillImage: UIImage = UIImage(systemName: "mic.fill") ?? UIImage()
 let fileImage: UIImage = UIImage(systemName: "folder") ?? UIImage()
 let fileFillImage: UIImage = UIImage(systemName: "folder.fill") ?? UIImage()
 
-let heartImage: UIImage = UIImage(systemName: "heart") ?? UIImage()
-let heartFillImage: UIImage = UIImage(systemName: "heart.fill") ?? UIImage()
+let analysisImage: UIImage = UIImage(systemName: "waveform.and.magnifyingglass") ?? UIImage()
 
 let gearImage: UIImage = UIImage(systemName: "gearshape") ?? UIImage()
 let gearFillImage: UIImage = UIImage(systemName: "gearshape.fill") ?? UIImage()
