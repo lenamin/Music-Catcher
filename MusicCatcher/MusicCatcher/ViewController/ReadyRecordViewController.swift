@@ -24,9 +24,12 @@ class ReadyRecordViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .custombackgroundGrayColor
-        view.addSubview(recordButtonView)
-        [recordButtonView].forEach { view.addSubview($0) }
         
+        recordButtonView.homeReordCircleButton.addTarget(self,
+                         action: #selector(startRecordButtonTapped(_:)),
+                         for: .touchUpInside)
+        
+        [recordButtonView].forEach { view.addSubview($0) }
         recordButtonView.addSubview(microphoneImageView)
         configureLayout()
     }
@@ -41,5 +44,12 @@ extension ReadyRecordViewController {
         
         microphoneImageView.centerX(inView: recordButtonView)
         microphoneImageView.centerY(inView: recordButtonView)
+    }
+}
+
+extension ReadyRecordViewController {
+    @objc func startRecordButtonTapped(_ sender: UIButton) {
+        let recordingViewController = RecordingViewController()
+        self.navigationController?.pushViewController(recordingViewController, animated: true)
     }
 }

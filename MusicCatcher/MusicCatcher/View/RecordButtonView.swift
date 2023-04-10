@@ -17,9 +17,7 @@ final class RecordButtonView: UIView {
         button.backgroundColor = nil
         button.clipsToBounds = true
         button.layer.masksToBounds = true
-        button.addTarget(self,
-                         action: #selector(startRecordButtonTapped(_:)),
-                         for: .touchUpInside)
+        
         button.setGradientColor(firstColor: .pointColor,
                                 secondColor: .customGradientPurple,
                                 startPointNumber: CGPoint(x: 0.0, y: 0.0),
@@ -44,13 +42,5 @@ final class RecordButtonView: UIView {
                                    leading: self.leadingAnchor,
                                    bottom: self.bottomAnchor,
                                    trailing: self.trailingAnchor)
-    }
-}
-
-extension RecordButtonView {
-    @objc func startRecordButtonTapped(_ sender: UIButton) {
-        
-        // TODO: RecordView로 전환 구현하기
-        print("녹음이 시작됩니다")
     }
 }
