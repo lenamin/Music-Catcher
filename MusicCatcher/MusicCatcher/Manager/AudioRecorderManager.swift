@@ -18,7 +18,7 @@ class AudioRecorderManager {
     private var audioPlayer: AVAudioPlayer?
     private var meterTimer: Timer?
     private var isRecordPermissionGranted: Bool?
-    private var isRecording = false
+    public var isRecording = false
     private var isPausedRecording = false
     private var isPlaying = false
     private var recorderDelegate: (any RecorderDelegates)?
