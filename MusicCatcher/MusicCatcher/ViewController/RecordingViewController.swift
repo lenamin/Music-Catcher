@@ -9,14 +9,15 @@ import UIKit
 import AVFoundation
 import SimpleAudioWaveIndicator
 
-class RecordingViewController: UIViewController {
+class RecordingViewController: UIViewController, AVAudioRecorderDelegate {
     
-    // MARK: properties
+    // MARK: - properties
     
-    // TODO: 추후 다이나믹 Audio Wave 구현하기 일단 뷰만 뜨도록 구현
+    
+    // TODO: 추후 다이나믹 Audio Wave 구현하기 - 일단 뷰만 뜨도록 구현
     var audioWaveIndicator = SimpleAudioWaveIndicator()
-    var audioPlayer: AVAudioPlayer?
-    var timer: Timer?
+    var isRecording = AudioRecorderManager().isRecording
+    private let audioEngineManager = AudioRecorderManager()
     
     private var audioWaveView: UIView = {
         let waveView = UIView()
@@ -26,7 +27,7 @@ class RecordingViewController: UIViewController {
     
     private var timeLabel: UILabel = {
         let label = UILabel()
-        label.text = "02:32" // TODO: dummy data 실시간 녹음 수 받도록 수정 필요
+        label.text = "00:00:00" // TODO: dummy data 실시간 녹음 수 받도록 수정 필요
         // TODO: text 크기, 볼드 수정하기
         label.textAlignment = .center
         label.font = .boldSystemFont(ofSize: 46)
@@ -36,7 +37,7 @@ class RecordingViewController: UIViewController {
     
     private lazy var buttonStackView: UIStackView = {
         let stackView = UIStackView()
-        [leftListButton, middlePlayButton, rightStopButton].forEach { stackView.addArrangedSubview($0) }
+        [leftListButton, middleRecordButton, rightStopButton].forEach { stackView.addArrangedSubview($0) }
         stackView.axis = .horizontal
         stackView.alignment = .center
         stackView.distribution = .equalCentering
@@ -53,15 +54,17 @@ class RecordingViewController: UIViewController {
         return button
     }()
     
-    private lazy var middlePlayButton: UIButton = {
+    private lazy var middleRecordButton: UIButton = {
         let button = UIButton()
         button.frame = CGRect(x: 0, y: 0, width: 96, height: 96)
         button.setBackgroundImage(UIImage(named: "middle-circle.png"), for: .normal)
-        button.setImage(playImage, for: .normal)
+        button.isSelected = false
+        button.setImage(recordImage, for: .normal)
+        button.setImage(pauseImage, for: .selected)
         button.tintColor = .white
-
+        
         button.addTarget(self,
-                         action: #selector(playButtonTapped(_:)),
+                         action: #selector(recordButtonTapped(_:)),
                          for: .touchUpInside)
         return button
     }()
@@ -71,36 +74,24 @@ class RecordingViewController: UIViewController {
         button.frame = CGRect(x: 0, y: 0, width: 66, height: 66)
         button.setBackgroundImage(UIImage(named: "left-right-circle.png"), for: .normal)
         button.setImage(stopImage, for: .normal)
+        button.addTarget(self,
+                         action: #selector(stopButtonTapped(_:)),
+                         for: .touchUpInside)
         button.tintColor = .white
         return button
     }()
     
-    // MARK: life cycle
+    // MARK: - life cycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .custombackgroundGrayColor
         [audioWaveView, timeLabel, buttonStackView].forEach { view.addSubview($0) }
         
-        /*
-        
-        let url = Bundle.main.url(forResource: "BGM_1", withExtension: "mp3")!
-
-        do {
-            try AVAudioSession.sharedInstance().setCategory(.playAndRecord, options: .defaultToSpeaker)
-            try AVAudioSession.sharedInstance().setActive(true)
-
-            audioPlayer = try AVAudioPlayer(contentsOf: url)
-            audioPlayer?.prepareToPlay()
-            audioPlayer?.isMeteringEnabled = true
-        } catch {
-            print("Error:", error.localizedDescription)
-        }
-
-         */
         configureUI()
     }
     
+    /*
     @objc func playStop(_: Any) {
         if audioPlayer?.isPlaying == true {
             audioPlayer?.stop()
@@ -122,12 +113,24 @@ class RecordingViewController: UIViewController {
             timer?.invalidate()
         }
     }
+     */
     
-    @objc func playButtonTapped(_: UIButton) {
-        middlePlayButton.setImage(pauseImage, for: .normal)
-
+    @objc func recordButtonTapped(_: UIButton) {
+        if isRecording {
+            audioEngineManager.pauseRecording()
+            middleRecordButton.setImage(recordImage, for: .normal)
+        } else {
+            audioEngineManager.startRecording()
+            middleRecordButton.setImage(pauseImage, for: .normal)
+        }
+        isRecording = !isRecording
     }
     
+    @objc func stopButtonTapped(_: UIButton) {
+        audioEngineManager.finishAudioRecording(isSuccessed: true)
+        middleRecordButton.setImage(recordImage, for: .normal)
+        isRecording = false
+    }
 }
 
 extension RecordingViewController {
@@ -149,4 +152,3 @@ extension RecordingViewController {
         buttonStackView.setHeight(height: 96)
     }
 }
-
