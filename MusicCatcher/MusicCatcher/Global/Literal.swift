@@ -27,6 +27,11 @@ let analysisImage: UIImage = UIImage(systemName: "waveform.and.magnifyingglass")
 let gearImage: UIImage = UIImage(systemName: "gearshape") ?? UIImage()
 let gearFillImage: UIImage = UIImage(systemName: "gearshape.fill") ?? UIImage()
 
+let recordImage: UIImage = UIImage(systemName: "circle.fill") ?? UIImage()
+let pauseImage: UIImage = UIImage(systemName: "pause.fill") ?? UIImage()
+let stopImage: UIImage = UIImage(systemName: "stop.fill") ?? UIImage()
+let listImage: UIImage = UIImage(systemName: "list.bullet") ?? UIImage()
+
 
 // MARK: numbers
 

@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "left-right-circle.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
