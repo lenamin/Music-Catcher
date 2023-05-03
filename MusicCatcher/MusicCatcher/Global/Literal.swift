@@ -28,12 +28,16 @@ let gearImage: UIImage = UIImage(systemName: "gearshape") ?? UIImage()
 let gearFillImage: UIImage = UIImage(systemName: "gearshape.fill") ?? UIImage()
 
 let recordImage: UIImage = UIImage(systemName: "circle.fill") ?? UIImage()
+let playImage: UIImage = UIImage(systemName: "play.fill") ?? UIImage()
 let pauseImage: UIImage = UIImage(systemName: "pause.fill") ?? UIImage()
 let stopImage: UIImage = UIImage(systemName: "stop.fill") ?? UIImage()
 let listImage: UIImage = UIImage(systemName: "list.bullet") ?? UIImage()
 
+let folderImage: UIImage = UIImage(named: "folder.png") ?? UIImage()
 
 // MARK: numbers
 
 let recordButtonWidth: Int = 216
 let recordButtonHeight: Int = 216
+
+
