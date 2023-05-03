@@ -58,7 +58,7 @@ class AudioRecorderManager {
     
     public func setUpPlayerDelegate(_ delegate: any PlayerDelegates) {
         if isPlaying {
-            // stopPlaying() 구현하기
+
         }
         playerDelegate = delegate
     }
@@ -68,6 +68,7 @@ class AudioRecorderManager {
         let filePath = documentsDirectory
             .appendingPathComponent(FileName.audioDirectoryName, conformingTo: .directory)
             .appendingPathComponent(filename)
+        print("filePath: \(filePath)")
         return filePath
     }
     
@@ -85,11 +86,6 @@ class AudioRecorderManager {
     // MARK: - Recorder
     
     private func prepareRecorder() {
-        
-        guard isRecordPermissionGranted ?? Bool() else {
-            displayAlert(title: "Record Permission", description: "마이크 사용을 허용해주세요")
-            return
-        }
         
         let session = AVAudioSession.sharedInstance()
         do {
@@ -138,7 +134,6 @@ class AudioRecorderManager {
             isRecording = true
         }
     }
-    
     
     private func updateAudioMeter(timer: Timer) {
         guard audioRecorder?.isRecording ?? Bool() else { return }
@@ -218,7 +213,6 @@ class AudioRecorderManager {
         playerDelegate?.playerDidPaused()
         isPlaying = false
     }
-    
 }
 
 protocol RecorderDelegate {
