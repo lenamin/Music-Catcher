@@ -13,7 +13,6 @@ class RecordingViewController: UIViewController, AVAudioRecorderDelegate {
     
     // MARK: - properties
     
-    
     // TODO: 추후 다이나믹 Audio Wave 구현하기 - 일단 뷰만 뜨도록 구현
     var audioWaveIndicator = SimpleAudioWaveIndicator()
     var isRecording = AudioRecorderManager().isRecording
@@ -51,6 +50,10 @@ class RecordingViewController: UIViewController, AVAudioRecorderDelegate {
         button.setBackgroundImage(UIImage(named: "left-right-circle.png"), for: .normal)
         button.setImage(listImage, for: .normal)
         button.tintColor = .white
+        button.setPreferredSymbolConfiguration(.init(pointSize: 20), forImageIn: .normal)
+        button.addTarget(self,
+                         action: #selector(listButtonTapped(_:)),
+                         for: .touchUpInside)
         return button
     }()
     
@@ -61,8 +64,8 @@ class RecordingViewController: UIViewController, AVAudioRecorderDelegate {
         button.isSelected = false
         button.setImage(recordImage, for: .normal)
         button.setImage(pauseImage, for: .selected)
+        button.setPreferredSymbolConfiguration(.init(pointSize: 40), forImageIn: .normal)
         button.tintColor = .white
-        
         button.addTarget(self,
                          action: #selector(recordButtonTapped(_:)),
                          for: .touchUpInside)
@@ -77,6 +80,7 @@ class RecordingViewController: UIViewController, AVAudioRecorderDelegate {
         button.addTarget(self,
                          action: #selector(stopButtonTapped(_:)),
                          for: .touchUpInside)
+        button.setPreferredSymbolConfiguration(.init(pointSize: 20), forImageIn: .normal)
         button.tintColor = .white
         return button
     }()
@@ -89,6 +93,17 @@ class RecordingViewController: UIViewController, AVAudioRecorderDelegate {
         [audioWaveView, timeLabel, buttonStackView].forEach { view.addSubview($0) }
         
         configureUI()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        navigationController?.navigationBar.isHidden = true
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.navigationItem.largeTitleDisplayMode = .never
+        navigationController?.navigationBar.isHidden = false   
     }
     
     /*
@@ -130,6 +145,11 @@ class RecordingViewController: UIViewController, AVAudioRecorderDelegate {
         audioEngineManager.finishAudioRecording(isSuccessed: true)
         middleRecordButton.setImage(recordImage, for: .normal)
         isRecording = false
+    }
+    
+    @objc func listButtonTapped(_: UIButton) {
+        let fileGroupViewController = FileGroupViewController()
+        self.navigationController?.pushViewController(fileGroupViewController, animated: true)
     }
 }
 
