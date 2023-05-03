@@ -41,4 +41,20 @@ extension UIColor {
     static var customGradientPurple: UIColor {
         return UIColor(rgb: 0xA312D7)
     }
+    static var customTagPink: UIColor {
+        return UIColor(rgb: 0xFFABE7)
+    }
+    static var customTagSky: UIColor {
+        return UIColor(rgb: 0x83CBFF)
+    }
+    static var customTagGreen: UIColor {
+        return UIColor(rgb: 0x2DC68F)
+    }
+    static var customTagNavy: UIColor {
+        return UIColor(rgb: 0x8583FF)
+    }
+    static var customTagRed: UIColor {
+        return UIColor(rgb: 0xFF7676)
+    }
+    
 }
