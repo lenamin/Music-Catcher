@@ -15,12 +15,13 @@ class TabBarController: UITabBarController, UITabBarControllerDelegate {
         
         UITabBarItem.appearance().setTitleTextAttributes([NSAttributedString.Key.foregroundColor: UIColor.pointColor], for: .selected)
         UITabBar.appearance().tintColor = .pointColor
-        
         UITabBar.appearance().backgroundColor = .custombackgroundGrayColor
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        
+        
         
         // record tap
         let recordViewTab = ReadyRecordViewController()
@@ -31,7 +32,7 @@ class TabBarController: UITabBarController, UITabBarControllerDelegate {
         recordViewTab.tabBarItem = recordViewTabBarItem
         
         // file tab
-        let fileViewTab = ReadyRecordViewController()
+        let fileViewTab = FileGroupViewController()
         let fileViewTabBarItem = UITabBarItem(title: "file",
                                               image: fileImage,
                                               selectedImage: fileFillImage)
@@ -62,6 +63,7 @@ class TabBarController: UITabBarController, UITabBarControllerDelegate {
     override func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
         // TODO: 탭바아이템 선택했을 떄 화면 전환 구현하기
         print("tabbar가 선택되었습니다")
+        
     }
 }
 
