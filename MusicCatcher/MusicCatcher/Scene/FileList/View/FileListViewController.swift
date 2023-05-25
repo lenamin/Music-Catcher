@@ -9,8 +9,11 @@ import UIKit
 
 class FileListViewController: UIViewController {
     
-    var folderName: String = "Default"
-    var items = [Item]()
+    var folderName: String = String()
+    var items = AudioModel.items
+    var itemsFiltered = [AudioModel]()
+    
+    let recorderFileManager = RecordFileManager.shared
     
     public let searchBar: UISearchBar = {
         let searchBar = UISearchBar()
@@ -30,6 +33,7 @@ class FileListViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .custombackgroundGrayColor
+        getFolderItem()
         [fileListTableView].forEach { view.addSubview($0) }
         fileListTableView.delegate = self
         fileListTableView.dataSource = self
@@ -43,6 +47,7 @@ class FileListViewController: UIViewController {
         self.tabBarController?.tabBar.isHidden = false
         self.tabBarController?.tabBar.inputViewController?.hidesBottomBarWhenPushed = false
     }
+    
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         navigationController?.navigationBar.isHidden = true
@@ -56,16 +61,37 @@ class FileListViewController: UIViewController {
     }
 }
 
+// TODO: - "전체"인 경우 items 모두 나오게 세팅하기
+
+extension FileListViewController {
+    private func getFolderItem() {
+        itemsFiltered.append(contentsOf: items.filter { $0.folderName == self.folderName })
+        print("getfolderItem()안 - itemsFiltered: \(itemsFiltered)")
+    }
+}
+
 extension FileListViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return items.count
+        if folderName == "전체" {
+            return items.count
+        } else {
+            print("itemsFiltered: \(itemsFiltered)")
+            return itemsFiltered.count
+        }
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: FileListTableViewCell.reuseIdentifier, for: indexPath) as! FileListTableViewCell
+
+        var item = AudioModel()
         
-        cell.titleLabel.text = items[indexPath.row].title
-        cell.tagLabel.text = "#\(items[indexPath.row].tags[0].tag)"
+        if folderName == "전체" {
+            item = items[indexPath.row]
+        } else {
+            item = itemsFiltered[indexPath.row]
+        }
+        cell.titleLabel.text = item.title
+        cell.tagLabel.text = item.tags.joined(separator: ", ")
         return cell
     }
     
@@ -90,24 +116,21 @@ extension FileListViewController: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let item = items[indexPath.row]
-        if item != nil {
-            /*
-            let fileListViewController = FileListViewController()
-            fileListViewController.items = item.items
-            fileListViewController.folderName = item.name
-            fileListViewController.navigationItem.title = item.name
-            self.navigationController?.pushViewController(fileListViewController, animated: true)
-             */
-            let playListViewController = PlaylistViewController()
-            playListViewController.item = item
-            playListViewController.dateLabel.text = items[indexPath.row].date
-            playListViewController.contentTextView.text = items[indexPath.row].context
-            
-            // TODO: navigation 설정 여기서 할 것
-            playListViewController.navigationItem.title = items[indexPath.row].title
-            self.navigationController?.pushViewController(playListViewController, animated: true)
+        var item = AudioModel()
+        if folderName == "전체" {
+            item = items[indexPath.row]
+        } else {
+            item = itemsFiltered[indexPath.row]
         }
+        
+        let playListViewController = PlaylistViewController()
+        playListViewController.item = item
+        playListViewController.dateLabel.text = item.date
+        playListViewController.contentTextView.text = item.context
+            
+        // TODO: navigation 설정 여기서 할 것
+        playListViewController.navigationItem.title = item.title
+        self.navigationController?.pushViewController(playListViewController, animated: true)
         tableView.deselectRow(at: indexPath, animated: true)
     }
     

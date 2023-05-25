@@ -6,23 +6,26 @@
 //
 
 import UIKit
+import AVFoundation
 
 class PlaylistViewController: UIViewController {
     
     let tagColors: [UIColor] = [.customTagRed, .customTagSky, .customTagNavy, .customTagPink, .customTagGreen]
-    let audioEngineManager = AudioRecorderManager()
-    var isPlaying = false
-    var item = Item(title: String(), tags: [Tag](), date: String(), duration: Int(), context: String())
-    // TODO: -
-    // contentLabel tagLabel, playerBar, startTimeLabel, endTimeLabel, playingTimeLabel
-    // playButton, nextButton, beforeButton
+    var recorder: Recorder?
+    let recorderFileManager = RecordFileManager.shared
+
+    var items = AudioModel.items
+    var item = AudioModel()
+    var playViewModel = PlayViewModel()
+    var recordingViewModel = RecordingViewModel()
+    
+    var isPlaying: Observable<Bool> = Observable(false)
     
     // MARK: Properties
     
     public var dateLabel: UILabel = {
         let label = UILabel()
         label.textColor = .gray
-        label.text = "2023 - 03 - 05 14:23" // dummy
         return label
     }()
     
@@ -36,7 +39,6 @@ class PlaylistViewController: UIViewController {
         
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.register(PlaylistTagCollectionviewCell.self, forCellWithReuseIdentifier: PlaylistTagCollectionviewCell.reuseIdentifier)
-//        collectionView.contentInset = UIEdgeInsets(top: 0, left: 5, bottom: 0, right: 5)
         collectionView.showsHorizontalScrollIndicator = false
         return collectionView
     }()
@@ -44,24 +46,24 @@ class PlaylistViewController: UIViewController {
     public var contentTextView: UITextView = {
         let textView = UITextView()
         textView.textAlignment = .justified
-        textView.font = .systemFont(ofSize: 20)
+        textView.font = .systemFont(ofSize: 22)
         textView.isScrollEnabled = true
         textView.textColor = .black
         return textView
     }()
     
-    public var playProgressBar: UIProgressView = {
-        let progressView = UIProgressView()
-        progressView.transform = progressView.transform.scaledBy(x: 1, y: 4)
-        
-        progressView.progressViewStyle = .default
-        progressView.progressTintColor = .pointColor
-        progressView.trackTintColor = .darkGray
-        progressView.progress = 0.6 // dummy
-        
-        return progressView
-    }()
-    
+    public var playSlider: UISlider = {
+        let slider = UISlider()
+        slider.thumbTintColor = .pointColor
+        slider.tintColor = .pointColor
+        slider.isContinuous = true
+        slider.minimumValue = 0
+        slider.addTarget(PlaylistViewController.self,
+                         action: #selector(sliderValueChanged(_:)),
+                         for: .valueChanged)
+        return slider
+        }()
+  
     public var endTimeLabel: UILabel = {
         let label = UILabel()
         label.text = "03:22" // dummy
@@ -145,15 +147,29 @@ class PlaylistViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .custombackgroundGrayColor
-        [dateLabel, tagCollectionView, playProgressBar, contentTextView, labelStackView, buttonStackView].forEach { view.addSubview($0) }
+        [dateLabel, tagCollectionView, playSlider, contentTextView, labelStackView, buttonStackView].forEach { view.addSubview($0) }
+        
+        dateLabel.text = recorderFileManager.recordName.value
+        
         tagCollectionView.delegate = self
         tagCollectionView.dataSource = self
+        
+        guard let myURL = recorderFileManager.myURL else { return }
+        
+        playViewModel.setUpURL(myURL)
+        playViewModel.setAudioPlayer()
+        playViewModel.setData()
+        bind()
         configureLayout()
+    
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        navigationItem.title = recorderFileManager.recordName.value
         navigationController?.navigationBar.isHidden = false
+        
+
     }
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
@@ -175,13 +191,13 @@ class PlaylistViewController: UIViewController {
                                  paddingLeading: 15,
                                  paddingTrailing: 15)
         tagCollectionView.setHeight(height: 36)
-        playProgressBar.anchor(top: tagCollectionView.bottomAnchor,
+        playSlider.anchor(top: tagCollectionView.bottomAnchor,
                                leading: view.leadingAnchor,
                                trailing: view.trailingAnchor,
                                paddingTop: 30,
                                paddingLeading: 15,
                                paddingTrailing: 15)
-        labelStackView.anchor(top: playProgressBar.bottomAnchor,
+        labelStackView.anchor(top: playSlider.bottomAnchor,
                               leading: view.leadingAnchor,
                               trailing: view.trailingAnchor,
                               paddingTop: 15,
@@ -193,40 +209,43 @@ class PlaylistViewController: UIViewController {
     }
     
     @objc func playButtonTapped(_ sender: UIButton) {
-        if isPlaying {
-            audioEngineManager.pauseRecording()
-            playButton.setImage(playImage, for: .normal)
-        } else {
-            audioEngineManager.startRecording()
-            playButton.setImage(pauseImage, for: .normal)
-        }
-        isPlaying = !isPlaying
+        playViewModel.playOrPause()
     }
     
     @objc func backwardButtonTapped(_ sender: UIButton) {
-        // 이전 곡으로 이동
+        // 5초 전으로 이동
+        playViewModel.back()
     }
     
     @objc func forwardButtonTapped(_ sender: UIButton) {
-        // 다음곡으로 이동
+        // 5초 후로 이동
+        playViewModel.forward()
+    }
+    
+    @objc func sliderValueChanged(_ sender: UISlider) {
+        playViewModel.sliderChanged(Double(sender.value))
     }
     
 }
 
 extension PlaylistViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return item.tags.count
+        // TODO: db 정리하고 다시
+        let tagItems = item.tags
+        return tagItems.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PlaylistTagCollectionviewCell.reuseIdentifier, for: indexPath) as? PlaylistTagCollectionviewCell else { return UICollectionViewCell() }
         
-        cell.tagLabel.text = item.tags[indexPath.row].tag
+        let tagItems = item.tags
+        
+        cell.tagLabel.text = tagItems[indexPath.row]
         
         if indexPath.row > tagColors.count {
-            cell.backgroundColor = tagColors[indexPath.row - tagColors.count]
+             cell.backgroundColor = tagColors[indexPath.row - tagColors.count]
         } else {
-            cell.backgroundColor = tagColors[indexPath.row]
+             cell.backgroundColor = tagColors[indexPath.row]
         }
         return cell
     }
@@ -234,8 +253,32 @@ extension PlaylistViewController: UICollectionViewDelegate, UICollectionViewData
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         let label = UILabel()
-        label.text = item.tags[indexPath.row].tag
+        let tagItems = item.tags
+
+        label.text = tagItems[indexPath.row]
         return CGSize(width: 50 + label.intrinsicContentSize.width, height: 32)
     }
     
+}
+
+extension PlaylistViewController {
+    func bind() {
+        
+        playViewModel.playerProgress.bind { value in
+            self.playSlider.value = Float(value)
+        }
+        
+        playViewModel.playerTime.bind { time in
+            self.playingTimeLabel.text = time.elapsedText
+            self.endTimeLabel.text = time.remainingText
+        }
+        
+        playViewModel.isPlaying.bind { status in
+            if status == false {
+                self.playButton.setImage(playImage, for: .normal)
+            } else {
+                self.playButton.setImage(pauseImage, for: .normal)
+            }
+        }
+    }
 }

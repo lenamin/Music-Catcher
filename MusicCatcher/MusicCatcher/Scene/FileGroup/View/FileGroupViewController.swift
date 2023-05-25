@@ -11,7 +11,8 @@ class FileGroupViewController: UIViewController {
     
     // MARK: - properties
     
-    var data = Folder.forders
+    var items = AudioModel.items
+    var folderNames = ["전체"]
     
     private let fileGroupTableView: UITableView = {
         let tableView = UITableView()
@@ -57,7 +58,9 @@ class FileGroupViewController: UIViewController {
         fileGroupTableView.anchor(top: view.safeAreaLayoutGuide.topAnchor,
                                   leading: view.leadingAnchor,
                                   bottom: view.safeAreaLayoutGuide.bottomAnchor,
-                                  trailing: view.trailingAnchor)
+                                  trailing: view.trailingAnchor,
+                                  paddingLeading: 16,
+                                  paddingTrailing: 16)
     }
     
     @objc func editButtonTapped(_ sender: UIBarButtonItem) {
@@ -65,11 +68,14 @@ class FileGroupViewController: UIViewController {
         fileGroupTableView.setEditing(!isEditing, animated: true)
         sender.title = isEditing ? "Edit" : "Done"
     }
+    
+
 }
 
 extension FileGroupViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return data.count
+        sortFolders()
+        return folderNames.count
     }
     
     func numberOfSections(in tableView: UITableView) -> Int {
@@ -78,23 +84,21 @@ extension FileGroupViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: FileGroupTableViewCell.reuseIdentifier, for: indexPath) as! FileGroupTableViewCell
-        
-        cell.folderLabel.text = data[indexPath.row].name
-        cell.countLabel.text = String(data[indexPath.row].items.count)
+        let folderName = folderNames[indexPath.row]
+        cell.folderLabel.text = folderNames[indexPath.row]
+        cell.countLabel.text = String(countFolders(folderName))
         
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let folder = data[indexPath.row]
-        if folder != nil {
-            let fileListViewController = FileListViewController()
-            fileListViewController.items = folder.items
-            fileListViewController.folderName = folder.name
-            fileListViewController.navigationItem.title = folder.name
-            
-            self.navigationController?.pushViewController(fileListViewController, animated: true)
-        }
+        let folderName = folderNames[indexPath.row]
+        
+        let fileListViewController = FileListViewController()
+        fileListViewController.folderName = folderName
+        
+        fileListViewController.navigationItem.title = folderName
+        self.navigationController?.pushViewController(fileListViewController, animated: true)
         tableView.deselectRow(at: indexPath, animated: true)
     }
     
@@ -116,5 +120,30 @@ extension FileGroupViewController: UITableViewDelegate, UITableViewDataSource {
         pinAction.image?.withTintColor(.white)
         
         return UISwipeActionsConfiguration(actions: [pinAction])
+    }
+}
+
+// MARK: - folder filter method
+
+extension FileGroupViewController {
+    private func countFolders(_ folderName: String) -> Int {
+        if folderName == "전체" {
+            return items.count
+        } else {
+            let count = items.filter { $0.folderName == folderName }.count
+            return count
+        }
+    }
+    
+    private func sortFolders() {
+        for item in items {
+            if folderNames.contains(item.folderName) {
+                print("if절 - folderNames: \(folderNames)")
+                continue
+            } else {
+                folderNames.append(item.folderName)
+                print("else 절 - folderNames: \(folderNames)")
+            }
+        }
     }
 }
