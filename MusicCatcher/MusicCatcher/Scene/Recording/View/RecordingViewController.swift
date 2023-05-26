@@ -7,6 +7,7 @@
 
 import UIKit
 import AVFoundation
+import CoreData
 
 class RecordingViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPlayerDelegate {
     
@@ -17,11 +18,16 @@ class RecordingViewController: UIViewController, AVAudioRecorderDelegate, AVAudi
     let recordingViewModel = RecordingViewModel()
     let playViewModel = PlayViewModel()
     var averagePowerList: [CGFloat] = []
+    var duration = 0
     
     var tempararyItemArray: [AudioModel] = []
     var isRecording: Bool = false
     var timer: Timer?
     //    let dbHelper = DBHelper.shared
+    
+    let audioContext = CoreDataManager.shared.persistentContainer.viewContext
+    
+    let coreDataManager = CoreDataManager.shared
     
     private var audioWaveView: SoundVisualizerView = {
         let waveView = SoundVisualizerView(frame: .zero)
@@ -134,6 +140,7 @@ class RecordingViewController: UIViewController, AVAudioRecorderDelegate, AVAudi
     }
     
     @objc func stopButtonTapped(_: UIButton) {
+        duration = recorder.getDuration(seconds: Double(recorder.audioRecorder.currentTime))
         recordingViewModel.recorder?.audioRecorder.stop()
         recorder.displayLink = nil
         audioWaveView.removeLayer()
@@ -155,11 +162,17 @@ class RecordingViewController: UIViewController, AVAudioRecorderDelegate, AVAudi
                 playListViewController.recorderFileManager.recordName.value = self.recorderFileManager.recordName.value
                 playListViewController.recorderFileManager.myURL = self.recorderFileManager.myURL
                 
+                // TODO:  녹음을 다 했으니까 어떤 정보를 저장해야하지? -> v
+                // recordName -> title / url -> url / duration / date
+                
+                self.coreDataManager.saveAudioFileData(title: self.recorderFileManager.recordName.value,
+                                                       url: self.recorderFileManager.myURL!,
+                                                       duration: self.duration)
+                
                 print("done 누르면 저장되어있는 recordName: \(self.recorderFileManager.recordName.value)")
                 
                 print("playListViewController.playViewModel.recorderFileManager.myURL: \(playListViewController.playViewModel.recorderFileManager.myURL)")
                 
-              
                 self.navigationController?.pushViewController(playListViewController, animated: true)
             }
         })
