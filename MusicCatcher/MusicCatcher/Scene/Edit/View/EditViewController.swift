@@ -57,7 +57,6 @@ class EditViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        titleLabel.text = "제목"
         view.backgroundColor = .custombackgroundGrayColor
         [titleLabel, titleTextField, contextLabel, contentTextView, tagLabel, keywordTextField].forEach { view.addSubview($0) }
         contentTextView.delegate = self
@@ -120,8 +119,6 @@ class EditViewController: UIViewController {
         keywordTextField.setHeight(height: 40)
         
     }
-    
-
 }
 
 extension EditViewController: UITextViewDelegate {
@@ -133,8 +130,6 @@ extension EditViewController: UITextViewDelegate {
     }
     
     func textViewDidEndEditing(_ textView: UITextView) {
-
-        
         if textView.text.isEmpty {
             textView.text = "메모를 입력해주세요"
             textView.textColor = .lightGray
