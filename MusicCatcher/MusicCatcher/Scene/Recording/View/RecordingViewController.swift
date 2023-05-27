@@ -140,7 +140,6 @@ class RecordingViewController: UIViewController, AVAudioRecorderDelegate, AVAudi
     }
     
     @objc func stopButtonTapped(_: UIButton) {
-        duration = recorder.getDuration(seconds: Double(recorder.audioRecorder.currentTime))
         recordingViewModel.recorder?.audioRecorder.stop()
         recorder.displayLink = nil
         audioWaveView.removeLayer()
