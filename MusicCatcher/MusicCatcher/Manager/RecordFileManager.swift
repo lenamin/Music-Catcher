@@ -19,7 +19,7 @@ class RecordFileManager {
     var fileList: Array<Any>? = nil
     var recorder = Recorder()
     var recordName: Observable<String> = Observable("default")
-    var myURL: URL?
+    var myURL: String = String()
     
     init() {
         setup()
@@ -44,7 +44,7 @@ class RecordFileManager {
     }
     
     public func setRecordName() {
-        recordName.value = MyDateFormatter.shared.dateToString(from: Date.now)
+        recordName.value = MyDateFormatter.shared.timeToString(from: Date.now)
         print("recordName.value = \(recordName.value)")
     }
     /*
@@ -74,7 +74,7 @@ class RecordFileManager {
         do {
             let data = try Data(contentsOf: file)
             try data.write(to: recordURL)
-            self.myURL = recordURL
+            self.myURL = String(recordURL.absoluteString)
             print("save success: \(recordName)")
             print("newURL= \(myURL)")
         } catch {
