@@ -2,7 +2,7 @@
 //  AudioEntity+CoreDataProperties.swift
 //  MusicCatcher
 //
-//  Created by Lena on 2023/05/25.
+//  Created by Lena on 2023/05/29.
 //
 //
 
@@ -16,12 +16,12 @@ extension AudioEntity {
         return NSFetchRequest<AudioEntity>(entityName: "AudioEntity")
     }
 
-    @NSManaged public var title: String?
-    @NSManaged public var url: URL?
     @NSManaged public var context: String?
-    @NSManaged public var tags: [String]
+    @NSManaged public var date: String?
     @NSManaged public var folderName: String?
-    @NSManaged public var duration: Int64
+    @NSManaged public var tags: [String]?
+    @NSManaged public var title: String?
+    @NSManaged public var url: String?
 
 }
 
