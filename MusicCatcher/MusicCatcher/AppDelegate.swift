@@ -6,14 +6,14 @@
 //
 
 import UIKit
+import CoreData
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
-
-
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+        
         return true
     }
 
@@ -31,6 +31,31 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Use this method to release any resources that were specific to the discarded scenes, as they will not return.
     }
 
+    lazy var persistentContainer: NSPersistentContainer = {
+        
+        let container = NSPersistentContainer(name: "Model")
+        container.loadPersistentStores(completionHandler: { (storeDescription, error) in
+            if let error = error as NSError? {
+                print("app delegate error: \(error)")
+            }
+        })
+        return container
+    }()
 
+    func saveToContext() {
+        let context = persistentContainer.viewContext
+        print("app delegate 1")
+        if context.hasChanges {
+            print("app delegate 2")
+            do {
+                print("app delegate do")
+                try context.save()
+                print("app delegate 3")
+                print("saveToContext executed")
+            } catch {
+                print("error saving to context : \(error.localizedDescription)")
+            }
+        }
+    }
 }
 
