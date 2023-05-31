@@ -13,6 +13,8 @@ class FileGroupViewController: UIViewController {
     
     var items = AudioModel.items
     var folderNames = ["전체"]
+    var coreDataManager = CoreDataManager.shared
+    
     
     private let fileGroupTableView: UITableView = {
         let tableView = UITableView()
@@ -68,14 +70,12 @@ class FileGroupViewController: UIViewController {
         fileGroupTableView.setEditing(!isEditing, animated: true)
         sender.title = isEditing ? "Edit" : "Done"
     }
-    
-
 }
 
 extension FileGroupViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         sortFolders()
-        return folderNames.count
+        return (coreDataManager.getAudioSavedArrayFromCoreData() { }.filter { $0.folderName != "전체" }).count + 1
     }
     
     func numberOfSections(in tableView: UITableView) -> Int {
@@ -84,9 +84,12 @@ extension FileGroupViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: FileGroupTableViewCell.reuseIdentifier, for: indexPath) as! FileGroupTableViewCell
-        let folderName = folderNames[indexPath.row]
+        
+        folderNames =  Array(Set(coreDataManager.getAudioSavedArrayFromCoreData() { }.map { $0.folderName ?? "전체" }))
+        print("folderNames = \(folderNames)")
+        
         cell.folderLabel.text = folderNames[indexPath.row]
-        cell.countLabel.text = String(countFolders(folderName))
+        cell.countLabel.text = String(countFolders("전체"))
         
         return cell
     }
@@ -136,12 +139,15 @@ extension FileGroupViewController {
     }
     
     private func sortFolders() {
-        for item in items {
-            if folderNames.contains(item.folderName) {
+        for audio in coreDataManager.audioEntityArray {
+            
+            guard let folderName = audio.folderName else { return }
+            
+            if folderNames.contains(folderName) {
                 print("if절 - folderNames: \(folderNames)")
                 continue
             } else {
-                folderNames.append(item.folderName)
+                folderNames.append(folderName)
                 print("else 절 - folderNames: \(folderNames)")
             }
         }
