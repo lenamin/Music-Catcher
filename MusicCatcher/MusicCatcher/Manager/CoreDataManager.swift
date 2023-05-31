@@ -5,123 +5,122 @@
 //  Created by Lena on 2023/05/25.
 //
 
-import Foundation
+import UIKit
 import CoreData
 
-class CoreDataManager {
-    static var shared: CoreDataManager = CoreDataManager()
+final class CoreDataManager {
     
-    lazy var persistentContainer: NSPersistentContainer = {
-        let container = NSPersistentContainer(name: "Model")
-        container.loadPersistentStores(completionHandler: { (storeDescription, error) in
-            if let error = error as NSError? {
-                fatalError("Unresolved error \(error), \(error.userInfo)")
+    static let shared = CoreDataManager()
+    private init() {
+    }
+    let appDelegate = UIApplication.shared.delegate as? AppDelegate
+    
+    
+    /// 임시저장소
+    lazy var context = appDelegate?.persistentContainer.viewContext
+    
+    var audioEntityArray: [AudioEntity] = []
+    let modelName: String = "AudioEntity"
+    
+    
+    // MARK: - Create
+    
+    /// 새로운 audio를 만들고 저장한다
+    /// audio(파라미터...) 넣어서 값이 있는 값만 넣을것
+    func createAudioData(with audio: AudioModel, completion: @escaping () -> Void) {
+        if let context = context {
+            if let entity = NSEntityDescription.entity(forEntityName: self.modelName, in: context) {
+                // 임시저장소에 올라갈 객체 생성
+                if let audioCreated = NSManagedObject(entity: entity, insertInto: context) as? AudioEntity {
+                    audioCreated.url = audio.url
+                    audioCreated.title = audio.title
+                    audioCreated.date = audio.date
+                    audioCreated.folderName = audio.folderName
+                    audioCreated.context = audio.context
+                    audioCreated.tags = audio.tags
+                    
+                    self.appDelegate?.saveToContext()
+                }
             }
-        })
-        return container
-    }()
-    
-    var context: NSManagedObjectContext {
-        return persistentContainer.viewContext
+        } else { return print("context없음") }
+        completion()
     }
     
-    var myEntity: NSEntityDescription? {
-        return NSEntityDescription.entity(forEntityName: "AudioEntity", in: context)
-    }
+    // MARK: - Read
     
-    func saveToContext() {
-        do {
-            try context.save()
-        } catch {
-            print("error saving to context : \(error.localizedDescription)")
-        }
-    }
-    
-    // MARK: - CRUD methods
-    
-    /// Create
-    func insertMyEntity(_ audio: AudioModel) {
-        if let entity = myEntity {
-            let managedObject = NSManagedObject(entity: entity, insertInto: context)
-            /*
-            managedObject.setValue(audio.title, forKey: "")
-            managedObject.setValue(audio.url, forKey: "")
-            managedObject.setValue(audio.date, forKey: "")
-            managedObject.setValue(audio.duration, forKey: "")
-            managedObject.setValue(audio.tags, forKey: "")
-            managedObject.setValue(audio.folderName, forKey: "")
-             */
-            saveToContext()
-        }
-    }
-    
-    func saveAudioFileData(title: String, url: URL, duration: Int) {
-        if let entity = myEntity {
-            let managedObject = NSManagedObject(entity: entity, insertInto: context)
-            managedObject.setValue(title, forKey: "title")
-            print("save succcess title : \(title)")
-            managedObject.setValue(url, forKey: "url")
-            print("save succcess url \(url)")
-            managedObject.setValue(duration, forKey: "duration")
-            print("save succcess duration \(duration)")
-            saveToContext()
-        }
-    }
-    
-    /// Read
-    func fetchAudioData() -> [AudioEntity] {
-        do {
-            let request = AudioEntity.fetchRequest()
-            let results = try context.fetch(request)
-            return results
-        } catch {
-            print("error fetching Audio : \(error.localizedDescription)")
-        }
-        return []
-    }
-    
-    /// CoreData에 있는 data들을 AudioModel 형태로 반환
-    func getAudioData() -> [AudioModel] {
-        var audios: [AudioModel] = []
-        let fetchResults = fetchAudioData()
-        for result in fetchResults {
-            // TODO: url String() 형식 URL로 변경하기
+    func getAudioSavedArrayFromCoreData(completion: (@escaping () -> Void)) -> [AudioEntity] {
+        var savedAudioList: [AudioEntity] = []
+        
+        if let context = context {
+            let request = NSFetchRequest<NSManagedObject>(entityName: self.modelName)
             
-            let audioFileData = AudioModel(url: result.url!,
-                                           title: result.title ?? "",
-                                           tags: result.tags,
-                                           date: result.title!,
-                                           duration: Int(result.duration),
-                                           context: result.context!,
-                                           folderName: result.folderName ?? "")
-            audios.append(audioFileData)
+            let date = NSSortDescriptor(key: "date", ascending: true)
+            request.sortDescriptors = [date]
+            
+            do {
+                if let fetchedAudioList = try context.fetch(request) as? [AudioEntity] {
+                    savedAudioList = fetchedAudioList
+                }
+                completion()
+            } catch {
+                print("전체 데이터 가져오기실패")
+                completion()
+            }
         }
-        return audios
-        
-    }
-
-    /// update AudioModelData
-    func updateAudioData(_ audio: AudioModel) {
-        let fetchResults = fetchAudioData()
-        
-        // TODO: 변경가능성 있는 것 -> title, tags, context, folderName (각각 다 따로 구현할것)
-        for result in fetchResults {
-            // 여기에 update 할 data들 넣어준다
-        }
-        saveToContext()
+        return savedAudioList
     }
     
-    /// delete AudioDataModel
-    func deleteAudioData(_ audio: AudioModel) {
-        let fetchResults = fetchAudioData()
-        let audioFileData = fetchResults.filter({ $0.url == audio.url })[0]
-        context.delete(audioFileData)
-        saveToContext()
+    // MARK: - Delete
+    
+    func deleteAudioData(entity: AudioEntity, completion: @escaping () -> Void) {
+        guard let url = entity.url else { return }
+        
+        if let context = context {
+            context.perform { [self] in
+                let request = NSFetchRequest<NSManagedObject>(entityName: self.modelName)
+                
+                request.predicate = NSPredicate(format: "url = %@",url as String)
+                
+                do {
+                    if let fetchedAudioList = try context.fetch(request) as? [AudioEntity] {
+                        if var targetAudio = fetchedAudioList.first {
+                            context.delete(targetAudio)
+                            self.appDelegate?.saveToContext()
+                        }
+                    }
+                    completion()
+                } catch {
+                    print("삭제 실패")
+                }
+            }
+        }
     }
     
-    func deleteAllAudioDatas() {
-        let fetchResults = fetchAudioData()
-        fetchResults.forEach { context.delete($0) }
-        saveToContext()
+    // MARK: - Update
+    
+    func updateAudio(with audioEntity: AudioEntity, completion: @escaping() -> Void) {
+        
+        guard let url = audioEntity.url else {
+            completion()
+            return
+        }
+        
+        if let context = context {
+            let request = NSFetchRequest<NSManagedObject>(entityName: self.modelName)
+            print("request: \(request)")
+            request.predicate = NSPredicate(format: "url = %@", url as String)
+            do {
+                if let fetchedAudioList = try context.fetch(request) as? [AudioEntity] {
+                    var targetAudio = fetchedAudioList.first
+                    targetAudio = audioEntity
+                    appDelegate?.saveToContext()
+                    
+                }
+                completion()
+            } catch {
+                print("update failed")
+                completion()
+            }
+        }
     }
 }
