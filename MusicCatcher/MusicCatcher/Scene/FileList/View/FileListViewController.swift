@@ -10,10 +10,12 @@ import UIKit
 class FileListViewController: UIViewController {
     
     var folderName: String = String()
-    var items = AudioModel.items
+    
+    var items = [AudioModel]()
     var itemsFiltered = [AudioModel]()
     
     let recorderFileManager = RecordFileManager.shared
+    let coreDataManager = CoreDataManager.shared
     
     public let searchBar: UISearchBar = {
         let searchBar = UISearchBar()
@@ -43,6 +45,7 @@ class FileListViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        items = setData()
         navigationController?.navigationBar.isHidden = false
         self.tabBarController?.tabBar.isHidden = false
         self.tabBarController?.tabBar.inputViewController?.hidesBottomBarWhenPushed = false
@@ -59,6 +62,11 @@ class FileListViewController: UIViewController {
                                   bottom: view.safeAreaLayoutGuide.bottomAnchor,
                                  trailing: view.trailingAnchor)
     }
+    
+    private func setData() -> [AudioModel] {
+        let results = coreDataManager.getAudioSavedArrayFromCoreData() { }.map { translateEntityToModel(audioEntity: $0) }
+        return results
+    }
 }
 
 // TODO: - "전체"인 경우 items 모두 나오게 세팅하기
@@ -72,6 +80,7 @@ extension FileListViewController {
 
 extension FileListViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        
         if folderName == "전체" {
             return items.count
         } else {
@@ -82,16 +91,15 @@ extension FileListViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: FileListTableViewCell.reuseIdentifier, for: indexPath) as! FileListTableViewCell
-
-        var item = AudioModel()
         
+        var item = AudioModel()
         if folderName == "전체" {
             item = items[indexPath.row]
         } else {
             item = itemsFiltered[indexPath.row]
         }
         cell.titleLabel.text = item.title
-        cell.tagLabel.text = item.tags.joined(separator: ", ")
+        cell.tagLabel.text = item.tags?.joined(separator: ", ")
         return cell
     }
     
@@ -117,6 +125,7 @@ extension FileListViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         var item = AudioModel()
+        
         if folderName == "전체" {
             item = items[indexPath.row]
         } else {
@@ -124,14 +133,26 @@ extension FileListViewController: UITableViewDelegate, UITableViewDataSource {
         }
         
         let playListViewController = PlaylistViewController()
-        playListViewController.item = item
-        playListViewController.dateLabel.text = item.date
-        playListViewController.contentTextView.text = item.context
+        playListViewController.recorderFileManager.myURL = item.url ?? ""
+        print("item.url: \(item.url)")
             
         // TODO: navigation 설정 여기서 할 것
-        playListViewController.navigationItem.title = item.title
+//        playListViewController.navigationItem.title = item.title
         self.navigationController?.pushViewController(playListViewController, animated: true)
         tableView.deselectRow(at: indexPath, animated: true)
     }
     
+}
+
+extension FileListViewController {
+    private func translateEntityToModel(audioEntity: AudioEntity) -> AudioModel {
+        let resultModel = AudioModel(url: audioEntity.url ?? recorderFileManager.myURL,
+                                     title: audioEntity.title ?? "title",
+                                     tags: audioEntity.tags ?? ["+"],
+                                     date: audioEntity.date ?? "",
+                                     context: audioEntity.context ?? "",
+                                     folderName: audioEntity.folderName ?? "전체")
+        
+        return resultModel
+    }
 }

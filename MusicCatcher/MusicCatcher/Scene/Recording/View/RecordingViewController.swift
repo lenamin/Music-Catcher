@@ -7,6 +7,7 @@
 
 import UIKit
 import AVFoundation
+import CoreData
 
 class RecordingViewController: UIViewController, AVAudioRecorderDelegate, AVAudioPlayerDelegate {
     
@@ -18,10 +19,11 @@ class RecordingViewController: UIViewController, AVAudioRecorderDelegate, AVAudi
     let playViewModel = PlayViewModel()
     var averagePowerList: [CGFloat] = []
     
-    var tempararyItemArray: [AudioModel] = []
     var isRecording: Bool = false
     var timer: Timer?
     //    let dbHelper = DBHelper.shared
+    
+    let coreDataManager = CoreDataManager.shared
     
     private var audioWaveView: SoundVisualizerView = {
         let waveView = SoundVisualizerView(frame: .zero)
@@ -96,8 +98,6 @@ class RecordingViewController: UIViewController, AVAudioRecorderDelegate, AVAudi
         view.backgroundColor = .custombackgroundGrayColor
         [audioWaveView, timeLabel, buttonStackView].forEach { view.addSubview($0) }
         configureUI()
-        
-        
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -141,7 +141,7 @@ class RecordingViewController: UIViewController, AVAudioRecorderDelegate, AVAudi
         
         let alert = UIAlertController(title: "녹음완료!", message: "녹음된 파일을 저장하시겠습니까?", preferredStyle: .alert)
         
-        let action = UIAlertAction(title: "저장", style: .default, handler: {_ in
+        let action = UIAlertAction(title: "저장", style: .default, handler: { _ in
             guard let recorder = self.recordingViewModel.recorder?.audioRecorder else { return }
             do {
                 print("originURL: \(recorder.url)")
@@ -150,16 +150,19 @@ class RecordingViewController: UIViewController, AVAudioRecorderDelegate, AVAudi
                                                         file: recorder.url)
                 print("recorderFileManager.myURL = \(self.recorderFileManager.myURL)")
                 
+                self.createNewAudioData(url: self.recorderFileManager.myURL,
+                                                           title: self.recorderFileManager.recordName.value,
+                                                           tags: ["+"],
+                                                           date: MyDateFormatter.shared.dateToString(from: Date.now),
+                                                           context: " ",
+                                                           folderName: "전체")
+                
                 let playListViewController = PlaylistViewController()
                 
                 playListViewController.recorderFileManager.recordName.value = self.recorderFileManager.recordName.value
                 playListViewController.recorderFileManager.myURL = self.recorderFileManager.myURL
                 
-                print("done 누르면 저장되어있는 recordName: \(self.recorderFileManager.recordName.value)")
-                
-                print("playListViewController.playViewModel.recorderFileManager.myURL: \(playListViewController.playViewModel.recorderFileManager.myURL)")
-                
-              
+
                 self.navigationController?.pushViewController(playListViewController, animated: true)
             }
         })
@@ -173,22 +176,26 @@ class RecordingViewController: UIViewController, AVAudioRecorderDelegate, AVAudi
         
         present(alert, animated: true, completion: nil)
         middleRecordButton.setImage(recordImage, for: .normal)
-        
-        /*
-         // db 처리
-         dbHelper.createTable() // table이 없으면 dbtable을 create 한다
-         self.tempararyItemArray = dbHelper.readData()
-         dbHelper.insertData(title: "title")
-         self.tempararyItemArray = dbHelper.readData()
-         print("db에 insert가 잘 되었나?: \(dbHelper.db)")
-         */
-         isRecording = false
+    
+        isRecording = false
     }
     
     @objc func listButtonTapped(_: UIButton) {
         recordingViewModel.recorder?.audioRecorder.stop()
         let fileGroupViewController = FileGroupViewController()
         self.navigationController?.pushViewController(fileGroupViewController, animated: true)
+    }
+    
+    func createNewAudioData(url: String, title: String, tags: [String], date: String, context: String, folderName: String) {
+
+        let thisAudioModel = AudioModel(url: url, title: title, tags: tags, date: date, context: context, folderName: folderName)
+
+        coreDataManager.createAudioData(with: thisAudioModel) {
+            self.coreDataManager.audioEntityArray = self.coreDataManager.getAudioSavedArrayFromCoreData() {
+                print("완료됨")
+            }
+        }
+        debugPrint("createNewAudioData executed")
     }
 }
 

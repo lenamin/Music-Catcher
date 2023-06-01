@@ -31,14 +31,16 @@ class PlayViewModel {
      */
     
     func setAudioPlayer() {
-        guard let url = recorderFileManager.myURL else { return }
-
+        let urlString = recorderFileManager.myURL
+        let url = URL(string: urlString)
         print("setAudioPlayer에서의 myURL:\(url)")
         
-        guard let file = recorderFileManager.loadRecordFile(url) else { return print("loadData 실패") }
-        print("audio file set completed")
-        audioManager = Audio(file)
-        print("setAudio 끝")
+        if let url = url {
+            guard let file = recorderFileManager.loadRecordFile(url) else { return print("loadData 실패") }
+            print("audio file set completed")
+            audioManager = Audio(file)
+            print("setAudio 끝")
+        }
     }
     
     func setData() {

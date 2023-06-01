@@ -7,6 +7,7 @@
 
 import UIKit
 import AVFoundation
+import CoreData
 
 class PlaylistViewController: UIViewController {
     
@@ -21,7 +22,13 @@ class PlaylistViewController: UIViewController {
     
     var isPlaying: Observable<Bool> = Observable(false)
     
+    var audioData = AudioModel()
+    let coreDataManager = CoreDataManager.shared
     // MARK: Properties
+    
+    var playAudio = AudioModel(url: String(), title: String(), tags: [String()], date: String(), context: String(), folderName: String())
+    
+    var tagsItem: [String]?
     
     public var dateLabel: UILabel = {
         let label = UILabel()
@@ -149,28 +156,34 @@ class PlaylistViewController: UIViewController {
         view.backgroundColor = .custombackgroundGrayColor
         [dateLabel, tagCollectionView, playSlider, contentTextView, labelStackView, buttonStackView].forEach { view.addSubview($0) }
         
-        dateLabel.text = recorderFileManager.recordName.value
-        
         tagCollectionView.delegate = self
         tagCollectionView.dataSource = self
-        
-        guard let myURL = recorderFileManager.myURL else { return }
-        
-        playViewModel.setUpURL(myURL)
+    
+        playViewModel.setUpURL(URL(string: recorderFileManager.myURL))
         playViewModel.setAudioPlayer()
         playViewModel.setData()
         bind()
         configureLayout()
-    
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        navigationItem.title = recorderFileManager.recordName.value
+        getPlayAudio()
         navigationController?.navigationBar.isHidden = false
-        
-
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .edit, target: self, action: #selector(pushEditView(_ :)))
     }
+    
+    @objc func pushEditView(_ sender: UIBarItem) {
+        pushEditView()
+    }
+    
+    /// 1) editView로 넘어간다
+    /// 2) CoreData에서 해당 ObjectID를 넘긴다
+    func pushEditView() {
+        let editViewController = EditViewController()
+        self.navigationController?.pushViewController(editViewController, animated: true)
+    }
+
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         navigationController?.navigationBar.isHidden = true
@@ -226,21 +239,29 @@ class PlaylistViewController: UIViewController {
         playViewModel.sliderChanged(Double(sender.value))
     }
     
+    func getPlayAudio() {
+        coreDataManager.audioEntityArray = coreDataManager.getAudioSavedArrayFromCoreData() {
+            let filteredAudio = self.coreDataManager.audioEntityArray.filter { $0.url == self.recorderFileManager.myURL }.first
+            self.navigationItem.title = filteredAudio?.title
+            self.contentTextView.text = filteredAudio?.context
+            self.dateLabel.text = filteredAudio?.date
+            self.tagsItem = filteredAudio?.tags
+            self.tagCollectionView.reloadData()
+            
+        }
+    }
 }
 
 extension PlaylistViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         // TODO: db 정리하고 다시
-        let tagItems = item.tags
-        return tagItems.count
+        return tagsItem?.count ?? 1
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PlaylistTagCollectionviewCell.reuseIdentifier, for: indexPath) as? PlaylistTagCollectionviewCell else { return UICollectionViewCell() }
         
-        let tagItems = item.tags
-        
-        cell.tagLabel.text = tagItems[indexPath.row]
+        cell.tagLabel.text = tagsItem?[indexPath.row]
         
         if indexPath.row > tagColors.count {
              cell.backgroundColor = tagColors[indexPath.row - tagColors.count]
@@ -253,9 +274,8 @@ extension PlaylistViewController: UICollectionViewDelegate, UICollectionViewData
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         let label = UILabel()
-        let tagItems = item.tags
 
-        label.text = tagItems[indexPath.row]
+        label.text = tagsItem?[indexPath.row]
         return CGSize(width: 50 + label.intrinsicContentSize.width, height: 32)
     }
     
