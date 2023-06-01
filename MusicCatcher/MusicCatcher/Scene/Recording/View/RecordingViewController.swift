@@ -187,10 +187,9 @@ class RecordingViewController: UIViewController, AVAudioRecorderDelegate, AVAudi
     }
     
     func createNewAudioData(url: String, title: String, tags: [String], date: String, context: String, folderName: String) {
-        print("어디까지 실행되나 =============1")
+
         let thisAudioModel = AudioModel(url: url, title: title, tags: tags, date: date, context: context, folderName: folderName)
-        print("thisAudioModel: \(thisAudioModel.tags)")
-        print("어디까지 실행되나 =============2")
+
         coreDataManager.createAudioData(with: thisAudioModel) {
             self.coreDataManager.audioEntityArray = self.coreDataManager.getAudioSavedArrayFromCoreData() {
                 print("완료됨")

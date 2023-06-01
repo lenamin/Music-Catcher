@@ -44,14 +44,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func saveToContext() {
         let context = persistentContainer.viewContext
-        print("app delegate 1")
         if context.hasChanges {
-            print("app delegate 2")
             do {
-                print("app delegate do")
                 try context.save()
-                print("app delegate 3")
-                print("saveToContext executed")
             } catch {
                 print("error saving to context : \(error.localizedDescription)")
             }
