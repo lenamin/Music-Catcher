@@ -102,7 +102,7 @@ class RecordingViewController: UIViewController, AVAudioRecorderDelegate, AVAudi
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        navigationController?.navigationBar.isHidden = true
+        navigationController?.navigationBar.isHidden = false
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -162,7 +162,6 @@ class RecordingViewController: UIViewController, AVAudioRecorderDelegate, AVAudi
                 playListViewController.recorderFileManager.recordName.value = self.recorderFileManager.recordName.value
                 playListViewController.recorderFileManager.myURL = self.recorderFileManager.myURL
                 
-
                 self.navigationController?.pushViewController(playListViewController, animated: true)
             }
         })
@@ -206,7 +205,7 @@ extension RecordingViewController {
                              leading: view.leadingAnchor,
                              bottom: timeLabel.topAnchor,
                              trailing: view.trailingAnchor,
-                             paddingTop: 142,
+                             paddingTop: 120,
                              paddingBottom: 20)
         timeLabel.anchor(top: audioWaveView.bottomAnchor,
                          bottom: buttonStackView.topAnchor,

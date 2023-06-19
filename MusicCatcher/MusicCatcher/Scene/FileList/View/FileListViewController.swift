@@ -11,8 +11,10 @@ class FileListViewController: UIViewController {
     
     var folderName: String = String()
     
-    var items = [AudioModel]()
-    var itemsFiltered = [AudioModel]()
+//    var items = [AudioModel]()
+    var items = [AudioEntity]()
+//    var itemsFiltered = [AudioModel]()
+    var itemsFiltered = [AudioEntity]()
     
     let recorderFileManager = RecordFileManager.shared
     let coreDataManager = CoreDataManager.shared
@@ -63,8 +65,8 @@ class FileListViewController: UIViewController {
                                  trailing: view.trailingAnchor)
     }
     
-    private func setData() -> [AudioModel] {
-        let results = coreDataManager.getAudioSavedArrayFromCoreData() { }.map { translateEntityToModel(audioEntity: $0) }
+    private func setData() -> [AudioEntity] {
+        let results = coreDataManager.getAudioSavedArrayFromCoreData() { }.map { $0 }
         return results
     }
 }
@@ -92,7 +94,7 @@ extension FileListViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: FileListTableViewCell.reuseIdentifier, for: indexPath) as! FileListTableViewCell
         
-        var item = AudioModel()
+        var item = AudioEntity()
         if folderName == "전체" {
             item = items[indexPath.row]
         } else {
@@ -124,7 +126,7 @@ extension FileListViewController: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        var item = AudioModel()
+        var item = AudioEntity()
         
         if folderName == "전체" {
             item = items[indexPath.row]
@@ -133,9 +135,12 @@ extension FileListViewController: UITableViewDelegate, UITableViewDataSource {
         }
         
         let playListViewController = PlaylistViewController()
-        playListViewController.recorderFileManager.myURL = item.url ?? ""
         print("item.url: \(item.url)")
             
+        playListViewController.recorderFileManager.myURL = item.url ?? ""
+        playListViewController.recorderFileManager.recordName.value = self.recorderFileManager.recordName.value
+        
+        
         // TODO: navigation 설정 여기서 할 것
 //        playListViewController.navigationItem.title = item.title
         self.navigationController?.pushViewController(playListViewController, animated: true)

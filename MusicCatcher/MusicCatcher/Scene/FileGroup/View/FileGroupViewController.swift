@@ -11,7 +11,7 @@ class FileGroupViewController: UIViewController {
     
     // MARK: - properties
     
-    var items = AudioModel.items
+//    var items = AudioModel.items
     var folderNames = ["전체"]
     var coreDataManager = CoreDataManager.shared
     
@@ -48,6 +48,10 @@ class FileGroupViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        coreDataManager.audioEntityArray = coreDataManager.getAudioSavedArrayFromCoreData { self.fileGroupTableView.reloadData()
+            
+        }
+            
         navigationController?.navigationBar.isHidden = false
     }
     override func viewWillDisappear(_ animated: Bool) {
@@ -99,8 +103,9 @@ extension FileGroupViewController: UITableViewDelegate, UITableViewDataSource {
         
         let fileListViewController = FileListViewController()
         fileListViewController.folderName = folderName
-        
+        fileListViewController.items = coreDataManager.audioEntityArray
         fileListViewController.navigationItem.title = folderName
+        
         self.navigationController?.pushViewController(fileListViewController, animated: true)
         tableView.deselectRow(at: indexPath, animated: true)
     }
@@ -131,10 +136,9 @@ extension FileGroupViewController: UITableViewDelegate, UITableViewDataSource {
 extension FileGroupViewController {
     private func countFolders(_ folderName: String) -> Int {
         if folderName == "전체" {
-            return items.count
+            return coreDataManager.audioEntityArray.count
         } else {
-            let count = items.filter { $0.folderName == folderName }.count
-            return count
+            return coreDataManager.audioEntityArray.filter { $0.folderName == folderName }.count
         }
     }
     

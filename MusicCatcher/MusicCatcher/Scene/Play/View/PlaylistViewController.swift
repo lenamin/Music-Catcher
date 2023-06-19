@@ -159,16 +159,16 @@ class PlaylistViewController: UIViewController {
         tagCollectionView.delegate = self
         tagCollectionView.dataSource = self
     
-        playViewModel.setUpURL(URL(string: recorderFileManager.myURL))
-        playViewModel.setAudioPlayer()
+        playViewModel.setAudioPlayer(URL(string: recorderFileManager.myURL))
         playViewModel.setData()
         bind()
         configureLayout()
     }
-    
+ 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         getPlayAudio()
+        print("playListView viewWillAppear에서 recorderManager.myURL은? : \(recorderFileManager.myURL)")
         navigationController?.navigationBar.isHidden = false
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .edit, target: self, action: #selector(pushEditView(_ :)))
     }
@@ -177,8 +177,6 @@ class PlaylistViewController: UIViewController {
         pushEditView()
     }
     
-    /// 1) editView로 넘어간다
-    /// 2) CoreData에서 해당 ObjectID를 넘긴다
     func pushEditView() {
         let editViewController = EditViewController()
         self.navigationController?.pushViewController(editViewController, animated: true)
@@ -242,6 +240,7 @@ class PlaylistViewController: UIViewController {
     func getPlayAudio() {
         coreDataManager.audioEntityArray = coreDataManager.getAudioSavedArrayFromCoreData() {
             let filteredAudio = self.coreDataManager.audioEntityArray.filter { $0.url == self.recorderFileManager.myURL }.first
+            
             self.navigationItem.title = filteredAudio?.title
             self.contentTextView.text = filteredAudio?.context
             self.dateLabel.text = filteredAudio?.date
@@ -254,7 +253,6 @@ class PlaylistViewController: UIViewController {
 
 extension PlaylistViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        // TODO: db 정리하고 다시
         return tagsItem?.count ?? 1
     }
     
