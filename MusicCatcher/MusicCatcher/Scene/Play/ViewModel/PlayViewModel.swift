@@ -30,16 +30,20 @@ class PlayViewModel {
     }
      */
     
-    func setAudioPlayer() {
-        let urlString = recorderFileManager.myURL
-        let url = URL(string: urlString)
-        print("setAudioPlayer에서의 myURL:\(url)")
+    func setAudioPlayer(_ url: URL?) {
         
         if let url = url {
-            guard let file = recorderFileManager.loadRecordFile(url) else { return print("loadData 실패") }
-            print("audio file set completed")
-            audioManager = Audio(file)
-            print("setAudio 끝")
+            do {
+                if let file = try recorderFileManager.loadRecordFile(url) {
+                    print("audio file set completed")
+                    print("setAudio 끝")
+                    audioManager = Audio(file)  
+                } else {
+                    print("AVAudioFile load에 실패함!!")
+                }
+            } catch {
+                print("loadRecordFile error 발생함 ")
+            }
         }
     }
     
