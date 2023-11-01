@@ -41,7 +41,7 @@ class TabBarController: UITabBarController, UITabBarControllerDelegate {
         fileViewTab.tabBarItem = fileViewTabBarItem
         
         // analysis
-        let analysisTab = ReadyRecordViewController()
+        let analysisTab = AnalysisViewController()
         let favoriateTabBarItem = UITabBarItem(title: "analysis",
                                                image: analysisImage,
                                                selectedImage: analysisImage)
