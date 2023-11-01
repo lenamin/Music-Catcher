@@ -55,7 +55,7 @@ class Audio {
     
     let engine = AVAudioEngine()
     let pitchControl = AVAudioUnitTimePitch()
-    var isPlaying: Observable<Bool> = Observable(false)
+    var isPlaying: MusicCatcherObservable<Bool> = MusicCatcherObservable(false)
     var isPlayerReady = false
     var needsFileScheduled = true
     
@@ -63,8 +63,8 @@ class Audio {
     var audioSampleRate: Double = 0
     var audioLengthSeconds: Double = 0
     
-    var playerProgress: Observable<Double> = Observable(0.0)
-    var playerTime: Observable<PlayerTime> = Observable(.zero)
+    var playerProgress: MusicCatcherObservable<Double> = MusicCatcherObservable(0.0)
+    var playerTime: MusicCatcherObservable<PlayerTime> = MusicCatcherObservable(.zero)
     
     var displayLink: CADisplayLink?
     var seekFrame: AVAudioFramePosition = 0

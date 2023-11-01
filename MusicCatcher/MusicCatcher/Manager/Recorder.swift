@@ -8,6 +8,7 @@
 import Foundation
 import AVFoundation
 
+
 struct AudioRecorderTime {
     let currTimeText: String
     static let zero: AudioRecorderTime = .init(currTime: 0)
@@ -28,8 +29,8 @@ struct AudioRecorderTime {
 class Recorder {
     
     var audioRecorder = AVAudioRecorder()
-    var recordName: Observable<String> = Observable("default")
-    var currTime: Observable<AudioRecorderTime> = Observable(.zero)
+    var recordName: MusicCatcherObservable<String> = MusicCatcherObservable("default")
+    var currTime: MusicCatcherObservable<AudioRecorderTime> = MusicCatcherObservable(.zero)
     var displayLink: CADisplayLink?
     
     init() {

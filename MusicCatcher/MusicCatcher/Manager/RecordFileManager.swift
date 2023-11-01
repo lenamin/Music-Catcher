@@ -18,7 +18,7 @@ class RecordFileManager {
     var documentDirectory: URL?
     var fileList: Array<Any>? = nil
     var recorder = Recorder()
-    var recordName: Observable<String> = Observable("default")
+    var recordName: MusicCatcherObservable<String> = MusicCatcherObservable("default")
     var myURL: String = String()
     
     init() {
