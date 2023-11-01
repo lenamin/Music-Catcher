@@ -7,7 +7,7 @@
 
 import Foundation
 
-class Observable<T> {
+class MusicCatcherObservable<T> {
   private var listener: ((T) -> Void)?
   
   var value: T {
