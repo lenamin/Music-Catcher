@@ -15,9 +15,9 @@ class PlayViewModel {
     var audioManager: Audio?
     let recorderFileManager = RecordFileManager.shared
 
-    var playerTime: Observable<PlayerTime> = Observable(.zero)
-    var playerProgress: Observable<Double> = Observable(0.0)
-    var isPlaying: Observable<Bool> = Observable(false)
+    var playerTime: MusicCatcherObservable<PlayerTime> = MusicCatcherObservable(.zero)
+    var playerProgress: MusicCatcherObservable<Double> = MusicCatcherObservable(0.0)
+    var isPlaying: MusicCatcherObservable<Bool> = MusicCatcherObservable(false)
     
     // 얘를 init함수로 만들어
     func setUpURL(_ url: URL?) {

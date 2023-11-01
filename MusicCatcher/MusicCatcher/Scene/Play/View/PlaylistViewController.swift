@@ -20,7 +20,7 @@ class PlaylistViewController: UIViewController {
     var playViewModel = PlayViewModel()
     var recordingViewModel = RecordingViewModel()
     
-    var isPlaying: Observable<Bool> = Observable(false)
+    var isPlaying: MusicCatcherObservable<Bool> = MusicCatcherObservable(false)
     
     var audioData = AudioModel()
     let coreDataManager = CoreDataManager.shared

@@ -10,7 +10,7 @@ import AVFoundation
 
 class RecordingViewModel {
     var recorder: Recorder?
-    var currentTime: Observable<AudioRecorderTime> = Observable(.zero)
+    var currentTime: MusicCatcherObservable<AudioRecorderTime> = MusicCatcherObservable(.zero)
     
     func setAudioRecorder() {
         recorder = Recorder()
