@@ -16,6 +16,7 @@ class ReadyRecordViewController: UIViewController {
     private var microphoneImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.image = UIImage(named: microphoneImageName)
+        imageView.sizeToFit()
         return imageView
     }()
     
@@ -33,6 +34,16 @@ class ReadyRecordViewController: UIViewController {
         recordButtonView.addSubview(microphoneImageView)
         configureLayout()
     }
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationItem.rightBarButtonItem?.isHidden = true
+        navigationItem.title = "녹음하기"
+    }
 }
 
 extension ReadyRecordViewController {
@@ -44,6 +55,8 @@ extension ReadyRecordViewController {
         
         microphoneImageView.centerX(inView: recordButtonView)
         microphoneImageView.centerY(inView: recordButtonView)
+        microphoneImageView.setWidth(width: 157)
+        microphoneImageView.setHeight(height: 157)
     }
 }
 

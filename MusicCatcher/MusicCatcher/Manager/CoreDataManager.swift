@@ -22,7 +22,6 @@ final class CoreDataManager {
     var audioEntityArray: [AudioEntity] = []
     let modelName: String = "AudioEntity"
     
-    
     // MARK: - Create
     
     /// 새로운 audio를 만들고 저장한다
@@ -48,7 +47,7 @@ final class CoreDataManager {
     
     // MARK: - Read
     
-    func getAudioSavedArrayFromCoreData(completion: (@escaping () -> Void)) -> [AudioEntity] {
+    func getAudioSavedArrayFromCoreData(completion: @escaping ([AudioEntity]) -> Void) {
         var savedAudioList: [AudioEntity] = []
         
         if let context = context {
@@ -60,14 +59,14 @@ final class CoreDataManager {
             do {
                 if let fetchedAudioList = try context.fetch(request) as? [AudioEntity] {
                     savedAudioList = fetchedAudioList
+                    print("CoreDataManager - savedAudioList: \(savedAudioList.map { $0.url })")
                 }
-                completion()
+                completion(savedAudioList)
             } catch {
                 print("전체 데이터 가져오기실패")
-                completion()
+                completion(savedAudioList)
             }
         }
-        return savedAudioList
     }
     
     // MARK: - Delete
@@ -83,7 +82,7 @@ final class CoreDataManager {
                 
                 do {
                     if let fetchedAudioList = try context.fetch(request) as? [AudioEntity] {
-                        if var targetAudio = fetchedAudioList.first {
+                        if let targetAudio = fetchedAudioList.first {
                             context.delete(targetAudio)
                             self.appDelegate?.saveToContext()
                         }
@@ -114,7 +113,6 @@ final class CoreDataManager {
                     var targetAudio = fetchedAudioList.first
                     targetAudio = audioEntity
                     appDelegate?.saveToContext()
-                    
                 }
                 completion()
             } catch {
@@ -122,5 +120,11 @@ final class CoreDataManager {
                 completion()
             }
         }
+    }
+    
+    enum CoreDataError: Error {
+        case noContext
+        case createFailed
+        case readFailed
     }
 }

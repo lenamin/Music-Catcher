@@ -8,6 +8,7 @@
 import Foundation
 import AVFoundation
 
+
 struct AudioRecorderTime {
     let currTimeText: String
     static let zero: AudioRecorderTime = .init(currTime: 0)
@@ -28,8 +29,8 @@ struct AudioRecorderTime {
 class Recorder {
     
     var audioRecorder = AVAudioRecorder()
-    var recordName: Observable<String> = Observable("default")
-    var currTime: Observable<AudioRecorderTime> = Observable(.zero)
+    var recordName: MusicCatcherObservable<String> = MusicCatcherObservable("default")
+    var currTime: MusicCatcherObservable<AudioRecorderTime> = MusicCatcherObservable(.zero)
     var displayLink: CADisplayLink?
     
     init() {
@@ -46,16 +47,18 @@ class Recorder {
              AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue]
         do {
             try AVAudioSession.sharedInstance().setCategory(.playAndRecord, mode: .spokenAudio, options: .allowBluetooth)
-            print("set Category 완료: \(fileURL)")
+            print("첫번째 do=== Recorder - setUpAudioRecorder 안에서 set Category 완료: \(fileURL)")
         
         } catch {
-            print("error: \(error.localizedDescription)")
+            print("첫번째 do=== error: \(error.localizedDescription)")
         }
+        
         do {
             self.audioRecorder = try AVAudioRecorder(url: fileURL, settings: settings)
+            print("두번쨰 do=== Recorder - setUpAudioRecorder 안에서 audioRecorder에 fileURL넣음: \(self.audioRecorder.url)")
             setupDisplayLink()
         } catch {
-            print("error: \(error.localizedDescription)")
+            print("두번째 do=== error: \(error.localizedDescription)")
         }
     }
     
@@ -77,4 +80,3 @@ class Recorder {
         currTime.value = AudioRecorderTime(currTime: time)
     }
 }
-

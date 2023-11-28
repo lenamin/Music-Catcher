@@ -12,10 +12,14 @@ class EditViewController: UIViewController {
     var recorder: Recorder?
     let recorderFileManager = RecordFileManager.shared
     let coreDataManager = CoreDataManager.shared
-
-    var items = AudioModel.items
-    var item = AudioModel()
-    var playViewModel = PlayViewModel()
+    
+    /// editView에서 다룰 item
+    var audioModel = AudioModel()
+    var audioEntity = AudioEntity()
+    var thisURL: URL?
+    
+    /// playViewModel.url에 값을 전달받음
+    var playViewModel = RecordingPlayerViewModel()
     var recordingViewModel = RecordingViewModel()
     
     // MARK: Properties
@@ -24,7 +28,7 @@ class EditViewController: UIViewController {
     private var contextLabel = ReusableLabel(labelText: "메모", labelColor: .black, labelFont: .boldSystemFont(ofSize: 26))
     private var tagLabel = ReusableLabel(labelText: "태그", labelColor: .black, labelFont: .boldSystemFont(ofSize: 26))
     
-    private var titleTextField: UITextField = {
+    private lazy var titleTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "제목 입력하기"
         textField.textAlignment = .left
@@ -36,12 +40,14 @@ class EditViewController: UIViewController {
     public var contentTextView: UITextView = {
         let textView = UITextView()
         textView.textAlignment = .justified
-        textView.font = .systemFont(ofSize: 22)
-        textView.isScrollEnabled = false
+        textView.font = .systemFont(ofSize: 20)
+        textView.isScrollEnabled = true
         textView.isEditable = true
         textView.sizeToFit()
+        
         textView.text = "메모를 입력해주세요"
-        textView.textColor = .lightGray
+        textView.textColor = .placeholderText
+        textView.backgroundColor = .white
         return textView
     }()
     
@@ -57,27 +63,21 @@ class EditViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        print("EditView에서 entityArray는: \(coreDataManager.audioEntityArray)")
+        print("EditView에서 entityArray는: \(coreDataManager.audioEntityArray.debugDescription)")
         view.backgroundColor = .custombackgroundGrayColor
         [titleLabel, titleTextField, contextLabel, contentTextView, tagLabel, keywordTextField].forEach { view.addSubview($0) }
         contentTextView.delegate = self
         configureLayout()
-    
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationItem.title = "편집하기"
-        navigationController?.navigationBar.isHidden = false
+        navigationItem.largeTitleDisplayMode = .never
         setUpData()
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done,
                                                             target: self,
                                                             action: #selector(doneButtonTapped(_:)))
-    }
-    
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        navigationController?.navigationBar.isHidden = true
     }
     
     private func configureLayout() {
@@ -107,6 +107,7 @@ class EditViewController: UIViewController {
                                paddingTop: 10,
                                paddingLeading: 15,
                                paddingTrailing: 15)
+        contentTextView.setHeight(height: 200)
         tagLabel.anchor(top: contentTextView.bottomAnchor,
                         leading: view.leadingAnchor,
                         trailing: view.trailingAnchor,
@@ -125,9 +126,7 @@ class EditViewController: UIViewController {
     
     @objc func doneButtonTapped(_ sender: UIBarItem) {
         saveEditedData()
-        setUpData()
-        self.navigationController?.popViewController(animated: true)
-        
+        self.navigationController?.popViewController(animated: false)
     }
     
     private func addTagsToArray(tags: String) -> [String] {
@@ -136,42 +135,78 @@ class EditViewController: UIViewController {
         print("addTagsToArray: tags = \(tags), tagsArray: \(tagsArray)")
         return tagsArray
     }
-
+    
     private func setUpData() {
-        let edited = self.coreDataManager.getAudioSavedArrayFromCoreData() {
-            print("get completed")
-        }
+        guard let thisAudioEntity = coreDataManager.audioEntityArray.first(where: { $0.url?.description == self.recorderFileManager.myURL }) else { return print("thisAudioModel 실패")}
+        
+        self.audioModel = FileListViewController().translateEntityToModel(audioEntity: thisAudioEntity)
+        print("EditView에서 모델 가져오기 완료! 여기서 audioModel: \(self.audioModel.url)")
+        
+        self.titleTextField.text = self.audioModel.title
+        self.contentTextView.text = self.audioModel.context
+        self.keywordTextField.text = self.audioModel.tags?.joined(separator: " ")
     }
     
     private func saveEditedData() {
-        guard let audioEntity = coreDataManager.audioEntityArray.filter({ $0.url == recorderFileManager.myURL }).first else { return }
+        guard let audioEntity = coreDataManager.audioEntityArray.filter({ $0.url == recorderFileManager.myURL }).first else { return print("saveEditedData() is failed") }
         
-        audioEntity.title = titleTextField.text
-        audioEntity.context = contentTextView.text
+        if let isEmpty = titleTextField.text?.isEmpty {
+            if isEmpty == true {
+                audioEntity.title = audioEntity.date
+            } else {
+                audioEntity.title = titleTextField.text
+            }
+        }
+        
+        if let isEmpty = contentTextView.text?.isEmpty {
+            if isEmpty == true {
+                audioEntity.context = "내용없음"
+            } else {
+                audioEntity.context = contentTextView.text
+            }
+        }
+        
         audioEntity.tags = addTagsToArray(tags: keywordTextField.text ?? "+")
         
         coreDataManager.updateAudio(with: audioEntity) {
-            self.coreDataManager.audioEntityArray = self.coreDataManager.getAudioSavedArrayFromCoreData() {
+            self.coreDataManager.getAudioSavedArrayFromCoreData() { results in
+                self.coreDataManager.audioEntityArray = results
                 self.setUpData()
             }
         }
     }
 }
 
+
 extension EditViewController: UITextViewDelegate {
+    
     func textViewDidBeginEditing(_ textView: UITextView) {
-        if textView.textColor == .lightGray {
-            textView.text = nil
+        if textView.text == "메모를 입력해주세요" {
+            textView.text = ""
             textView.textColor = .black
         }
     }
     
     func textViewDidEndEditing(_ textView: UITextView) {
-        if textView.text.isEmpty {
+        
+        if textView.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            textView.text = "메모를 입력해주세요"
             textView.font = .preferredFont(forTextStyle: .callout)
-            textView.text = "메모 입력하기"
             textView.textColor = .lightGray
         }
+    }
+    
+    func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+        let inputString = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let oldString = textView.text,
+                let newRange = Range(range, in: oldString) else { return true }
+        let newString = oldString.replacingCharacters(in: newRange,
+                                                      with: inputString).trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        let characterCount = newString.count
+        guard characterCount <= 700 else { return false }
+        
+        return true
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {

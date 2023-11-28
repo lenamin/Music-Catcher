@@ -1,21 +1,18 @@
 //
-//  PlaylistViewController.swift
+//  RecordingPlayerViewController.swift
 //  MusicCatcher
 //
-//  Created by Lena on 2023/04/30.
+//  Created by Lena on 11/22/23.
 //
 
 import UIKit
 import AVFoundation
 import CoreData
-import RxSwift
 
-class PlaylistViewController: UIViewController {
+class RecordingPlayerViewController: UIViewController {
     
     let tagColors: [UIColor] = [.customTagRed, .customTagSky, .customTagNavy, .customTagPink, .customTagGreen]
-    
     var recorder: Recorder?
-    var player: Player?
     
     /// 이 화면에서 재생할 audioModel
     var audioModel = AudioModel()
@@ -23,17 +20,13 @@ class PlaylistViewController: UIViewController {
     
     // View Models
     var recordingPlayerViewModel = RecordingPlayerViewModel()
-    var playerViewModel = PlayerViewModel()
     var recordingViewModel = RecordingViewModel()
     
-//    var isPlaying: MusicCatcherObservable<Bool> = MusicCatcherObservable(false)
+    var isPlaying: MusicCatcherObservable<Bool> = MusicCatcherObservable(false)
     
     let coreDataManager = CoreDataManager.shared
     
-    let disposeBag = DisposeBag()
     // MARK: Properties
-    
-//    var playAudio = AudioModel(url: String(), title: String(), tags: [String()], date: String(), context: String(), folderName: String())
     
     var tagsItem: [String]?
     
@@ -160,18 +153,17 @@ class PlaylistViewController: UIViewController {
     }()
     
     // MARK: initialize
+
+    // MARK: Life Cycle
     
     init(_ url: URL) {
-        super.init(nibName: nil, bundle: nil)
-        player?.startPlayer(url)
-        print("PlayListViewController에서 Player?.startPlayer()가 실행되었다=== url: \(url)")
+      super.init(nibName: nil, bundle: nil)
+      recordingPlayerViewModel.setUpURL(url)
     }
-    
+
     required init?(coder: NSCoder) {
       fatalError("Play ViewController Error")
     }
-    
-    // MARK: Life Cycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -180,7 +172,6 @@ class PlaylistViewController: UIViewController {
         
         tagCollectionView.delegate = self
         tagCollectionView.dataSource = self
-
         configureLayout()
     }
  
@@ -189,7 +180,17 @@ class PlaylistViewController: UIViewController {
         
         getPlayAudio()
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .edit, target: self, action: #selector(pushEditView(_ :)))
+        recordingPlayerViewModel.setUpAudio()
+        recordingPlayerViewModel.setupData()
+        bind()
     }
+    
+    /*
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+//        navigationController?.popToRootViewController(animated: true)
+    }
+    */
     
     @objc func pushEditView(_ sender: UIBarItem) {
         pushEditView()
@@ -197,9 +198,9 @@ class PlaylistViewController: UIViewController {
     
     func pushEditView() {
         let editViewController = EditViewController()
-        editViewController.audioModel.url = audioModel.url
-        print("PlaylistViewController에서 edit button을 눌렀을 때 전달하는 url: \(editViewController.audioModel.url)")
         
+        editViewController.audioModel.url = recorderFileManager.myURL
+        print("pushEditView() - editViewController.audioModel.url : \(editViewController.audioModel.url ?? "")")
         self.navigationController?.pushViewController(editViewController, animated: true)
     }
     
@@ -237,29 +238,28 @@ class PlaylistViewController: UIViewController {
     }
     
     @objc func playButtonTapped(_ sender: UIButton) {
-        print("PlaylistViewController에서 playbutton이 tapped")
-        playerViewModel.playPause()
+        recordingPlayerViewModel.playOrPause()
     }
     
     @objc func backwardButtonTapped(_ sender: UIButton) {
         // 5초 전으로 이동
-        playerViewModel.rewind5Seconds()
+        recordingPlayerViewModel.back()
     }
     
     @objc func forwardButtonTapped(_ sender: UIButton) {
         // 5초 후로 이동
-        playerViewModel.forward5Seconds()
+        recordingPlayerViewModel.forward()
     }
     
     @objc func sliderValueChanged(_ sender: UISlider) {
-        print("여기는 좀 더 생각해보기")
+        recordingPlayerViewModel.sliderChanged(Double(sender.value))
     }
     
     func getPlayAudio() {
         
         coreDataManager.getAudioSavedArrayFromCoreData() { results in
             let filteredAudio = results.filter {
-                $0.url == self.playerViewModel.url?.description }.first
+                $0.url == self.recordingPlayerViewModel.url?.description }.first
             print("filtered audio: \(String(describing: filteredAudio))")
             
             self.navigationItem.title = filteredAudio?.title
@@ -272,7 +272,8 @@ class PlaylistViewController: UIViewController {
     }
 }
 
-extension PlaylistViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+extension RecordingPlayerViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+    
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return tagsItem?.count ?? 1
     }
@@ -290,39 +291,32 @@ extension PlaylistViewController: UICollectionViewDelegate, UICollectionViewData
         return cell
     }
     
-
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         let label = UILabel()
 
         label.text = tagsItem?[indexPath.row]
         return CGSize(width: 50 + label.intrinsicContentSize.width, height: 32)
     }
-    
 }
 
-extension PlaylistViewController {
+extension RecordingPlayerViewController {
     func bind() {
         
-        // Bind player progress
-        playerViewModel.playerProgress
-            .bind(to: playSlider.rx.value)
-            .disposed(by: disposeBag)
-
-        // Bind player time
-        playerViewModel.playerTime
-            .bind { elapsed, remaining in
-                self.playingTimeLabel.text = elapsed
-                self.endTimeLabel.text = remaining
+        recordingPlayerViewModel.playerProgress.bind { value in
+            self.playSlider.value = Float(value)
+        }
+        
+        recordingPlayerViewModel.playerTime.bind { time in
+            self.playingTimeLabel.text = time.elapsedText
+            self.endTimeLabel.text = time.remainingText
+        }
+        
+        recordingPlayerViewModel.isPlaying.bind { status in
+            if status == false {
+                self.playButton.setImage(playImage, for: .normal)
+            } else {
+                self.playButton.setImage(pauseImage, for: .normal)
             }
-            .disposed(by: disposeBag)
-
-        // Bind isPlaying
-        playerViewModel.isPlaying
-            .bind { isPlaying in
-                let playImage = UIImage(named: "playImageName")!
-                let pauseImage = UIImage(named: "pauseImageName")!
-                self.playButton.setImage(isPlaying ? pauseImage : playImage, for: .normal)
-            }
-            .disposed(by: disposeBag)
+        }
     }
 }

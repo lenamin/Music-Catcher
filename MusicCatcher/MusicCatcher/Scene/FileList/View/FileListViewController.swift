@@ -11,13 +11,15 @@ class FileListViewController: UIViewController {
     
     var folderName: String = String()
     
-//    var items = [AudioModel]()
+    /// 모든 coredata audioentity들이 모여있는 배열
     var items = [AudioEntity]()
-//    var itemsFiltered = [AudioModel]()
+    
+    /// 해당 View에 있는 배열
     var itemsFiltered = [AudioEntity]()
     
     let recorderFileManager = RecordFileManager.shared
     let coreDataManager = CoreDataManager.shared
+    let player = Player.shared
     
     public let searchBar: UISearchBar = {
         let searchBar = UISearchBar()
@@ -48,16 +50,8 @@ class FileListViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         items = setData()
-        navigationController?.navigationBar.isHidden = false
-        self.tabBarController?.tabBar.isHidden = false
-        self.tabBarController?.tabBar.inputViewController?.hidesBottomBarWhenPushed = false
     }
-    
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        navigationController?.navigationBar.isHidden = true
-    }
-    
+ 
     private func configureUI() {
         fileListTableView.anchor(top: view.safeAreaLayoutGuide.topAnchor,
                                  leading: view.leadingAnchor,
@@ -66,8 +60,11 @@ class FileListViewController: UIViewController {
     }
     
     private func setData() -> [AudioEntity] {
-        let results = coreDataManager.getAudioSavedArrayFromCoreData() { }.map { $0 }
-        return results
+        coreDataManager.getAudioSavedArrayFromCoreData { array in
+            self.items = array.map { $0 }
+            print("playListViewController에서 setData() 완료! \(self.items)")
+        }
+        return items
     }
 }
 
@@ -76,7 +73,7 @@ class FileListViewController: UIViewController {
 extension FileListViewController {
     private func getFolderItem() {
         itemsFiltered.append(contentsOf: items.filter { $0.folderName == self.folderName })
-        print("getfolderItem()안 - itemsFiltered: \(itemsFiltered)")
+//        print("getfolderItem()안 - itemsFiltered: \(itemsFiltered)")
     }
 }
 
@@ -86,7 +83,7 @@ extension FileListViewController: UITableViewDelegate, UITableViewDataSource {
         if folderName == "전체" {
             return items.count
         } else {
-            print("itemsFiltered: \(itemsFiltered)")
+//            print("itemsFiltered: \(itemsFiltered)")
             return itemsFiltered.count
         }
     }
@@ -126,32 +123,25 @@ extension FileListViewController: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        var item = AudioEntity()
         
-        if folderName == "전체" {
-            item = items[indexPath.row]
-        } else {
-            item = itemsFiltered[indexPath.row]
-        }
-        
-        let playListViewController = PlaylistViewController()
-        print("item.url: \(item.url)")
+        if let audioURL = items[indexPath.row].url {
             
-        playListViewController.recorderFileManager.myURL = item.url ?? ""
-        playListViewController.recorderFileManager.recordName.value = self.recorderFileManager.recordName.value
-        
-        
-        // TODO: navigation 설정 여기서 할 것
-//        playListViewController.navigationItem.title = item.title
-        self.navigationController?.pushViewController(playListViewController, animated: true)
-        tableView.deselectRow(at: indexPath, animated: true)
+            if let url = URL(string: audioURL) {
+                print("FileListViewController에서 tableViewCell didSelectRowAt 했을 때 ======= url: \(url)")
+                let playListViewController = PlaylistViewController(url)
+                playListViewController.playerViewModel.url = url
+                
+                self.navigationController?.pushViewController(playListViewController, animated: true)
+                tableView.deselectRow(at: indexPath, animated: true)
+            }
+        }
     }
     
 }
 
 extension FileListViewController {
-    private func translateEntityToModel(audioEntity: AudioEntity) -> AudioModel {
-        let resultModel = AudioModel(url: audioEntity.url ?? recorderFileManager.myURL,
+    public func translateEntityToModel(audioEntity: AudioEntity) -> AudioModel {
+        let resultModel = AudioModel(url: audioEntity.url ?? "default",
                                      title: audioEntity.title ?? "title",
                                      tags: audioEntity.tags ?? ["+"],
                                      date: audioEntity.date ?? "",

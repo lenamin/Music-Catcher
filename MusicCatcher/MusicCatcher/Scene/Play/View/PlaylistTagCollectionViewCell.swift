@@ -35,14 +35,6 @@ class PlaylistTagCollectionviewCell: UICollectionViewCell {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
-//    private func pickTagColor() -> UIColor {
-//        let setTagColors: Set = Set(tagColors)
-////        let tagColor = tagColors.randomElement()
-//        let tagColor = setTagColors.randomElement()
-//        return tagColor ?? UIColor()
-//    }
-//
     
     func setConstraints() {
         contentView.addSubview(tagLabel)

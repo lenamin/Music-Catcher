@@ -8,54 +8,16 @@
 import Foundation
 import AVFoundation
 
-enum TimeConstant {
-    static let secsPerMin = 60
-    static let secsPerHour = TimeConstant.secsPerMin * 60
-}
-
-struct PlayerTime {
-    let elapsedText: String
-    let remainingText: String
-    
-    static let zero: PlayerTime = .init(elapsedTime: 0, remainingTime: 0)
-    
-    init(elapsedTime: Double, remainingTime: Double) {
-        elapsedText = PlayerTime.formatted(time: elapsedTime)
-        remainingText = PlayerTime.formatted(time: remainingTime)
-    }
-    
-    private static func formatted(time: Double) -> String {
-        var seconds = Int(ceil(time))
-        var hours = 0
-        var mins = 0
-        
-        if seconds > TimeConstant.secsPerHour {
-            hours = seconds / TimeConstant.secsPerHour
-            seconds -= hours * TimeConstant.secsPerHour
-        }
-        
-        if seconds > TimeConstant.secsPerMin {
-            mins = seconds / TimeConstant.secsPerMin
-            seconds -= mins * TimeConstant.secsPerMin
-        }
-        
-        var formattedString = ""
-        if hours > 0 {
-            formattedString = "\(String(format: "%02d", hours)):"
-        }
-        formattedString += "\(String(format: "%02d", mins)):\(String(format: "%02d", seconds))"
-        return formattedString
-    }
-}
 
 class Audio {
 //    let recorder = Recorder()
     
     let audioPlayer = AVAudioPlayerNode()
+    var soundPlayer: AVAudioPlayer?
     
     let engine = AVAudioEngine()
     let pitchControl = AVAudioUnitTimePitch()
-    var isPlaying: Observable<Bool> = Observable(false)
+    var isPlaying: MusicCatcherObservable<Bool> = MusicCatcherObservable(false)
     var isPlayerReady = false
     var needsFileScheduled = true
     
@@ -63,8 +25,8 @@ class Audio {
     var audioSampleRate: Double = 0
     var audioLengthSeconds: Double = 0
     
-    var playerProgress: Observable<Double> = Observable(0.0)
-    var playerTime: Observable<PlayerTime> = Observable(.zero)
+    var playerProgress: MusicCatcherObservable<Double> = MusicCatcherObservable(0.0)
+    var playerTime: MusicCatcherObservable<PlayerTime> = MusicCatcherObservable(.zero)
     
     var displayLink: CADisplayLink?
     var seekFrame: AVAudioFramePosition = 0
@@ -81,36 +43,68 @@ class Audio {
         return playerTime.sampleTime
     }
     
-    init(_ url: URL) {
-        setupAudio(url)
+    init(recordFileURL: URL) {
+        setupAudio(recordFileURL)
         setupDisplayLink()
+        print("Audio 클래스 - init(_ recordFileURL) 함수 내에서 - init(_ recordFileURL: URL) executed")
+    }
+    
+    init(savedSoundFileURL: URL) {
+        setSoundPlayer(savedSoundFileURL)
+        setupDisplayLink()
+        print("Audio 클래스 - init(_ savedSoundFileURL) 함수 내에서 - init(_ savedSoundFileURL: URL) executed")
     }
     
     init(_ file: AVAudioFile) {
         setupAudio(file)
         setupDisplayLink()
-        print("init(_file: AVAudioFile) exuceted")
+        print("Audio 클래스 - init(_ file) 함수 내에서 - init(_file: AVAudioFile) executed")
     }
     
-    private func setupAudio(_ url: URL) {
+    private func setSoundPlayer(_ url: URL) {
         do {
-            let file = try AVAudioFile(forReading: url)
-            let format = file.processingFormat
-            print("file: \(file) / format: \(format)")
-            
-            audioLengthSamples = file.length
-            audioSampleRate = format.sampleRate
-            audioLengthSeconds = Double(audioLengthSamples) / audioSampleRate
-            
-            audioFile = file
-            print("setupAudio 완료")
-            configureEngine(with: format)
+            soundPlayer = try AVAudioPlayer(contentsOf: url)
+            soundPlayer?.prepareToPlay()
         } catch {
-            print("Error reading the audio file: \(error.localizedDescription)")
+            print("Error loading sound file : \(error.localizedDescription)")
         }
     }
     
+    private func setupAudio(_ url: URL) {
+        print("setupAudio1. Audio클래스에 있는 setupAudio(_ url) 이 호출되었어!!!")
+        
+        do {
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.playback)
+            try session.setActive(true)
+            
+            // AVAudioFile 생성 및 사용 코드...
+            do {
+                print("setupAudio2. Audio클래스에 있는 setupAudio(_ url) 내부의 do 로 들어옴")
+              let file = try AVAudioFile(forReading: url)
+              let format = file.processingFormat
+                print("setupAudio3. Audio클래스에 있는 setupAudio(_ url) 에서 file, format 매칭 성공 === file: \(file.description), format: \(format)")
+                
+              audioLengthSamples = file.length
+              audioSampleRate = format.sampleRate
+              audioLengthSeconds = Double(audioLengthSamples) / audioSampleRate
+              
+              audioFile = file
+              
+              configureEngine(with: format)
+            } catch {
+              print("setupAudio 4. forReading 함수 호출 실패")
+              print("Error reading the audio file: \(error.localizedDescription)")
+            }
+        } catch let error {
+            print("Error setting up AVAudioSession: \(error.localizedDescription)")
+        }
+        
+
+    }
+    
     private func setupAudio(_ file: AVAudioFile) {
+        print("setUpAudio(_ file) 함수 안에서 시작됨: \(file)")
         let format = file.processingFormat
         
         audioLengthSamples = file.length
@@ -119,22 +113,35 @@ class Audio {
         audioFile = file
         
         configureEngine(with: format)
+        print("setUpAudio(_ file) 함수 안에서 완료됨")
     }
     
-    private func configureEngine(with format: AVAudioFormat) {
-        
+    /*
+    private func prepare() {
         engine.attach(audioPlayer)
         engine.attach(pitchControl)
         
         engine.connect(audioPlayer, to: pitchControl, format: nil)
         engine.connect(pitchControl, to: engine.mainMixerNode, format: nil)
         engine.prepare()
-        print("engine 준비완료")
-        engine.mainMixerNode
+        print("Audio 클래스 - prepare() - engine 준비완료")
+    } */
+    
+    private func configureEngine(with format: AVAudioFormat) {
+        print("configureEngine 1. Audio클래스 - configureEngine 메서드 실행 시작")
+        engine.attach(audioPlayer)
+        engine.attach(pitchControl)
+        
+        engine.connect(audioPlayer, to: pitchControl, format: nil)
+        engine.connect(pitchControl, to: engine.mainMixerNode, format: nil)
+        print("configureEngine 2. Audio클래스 - configureEngine 메서드 내 connect 완료")
+        engine.prepare()
+        
         do {
             try engine.start()
             scheduleAudioFile()
             isPlayerReady = true
+            print("configureEngine 3. Audio클래스 - configureEngine 메서드 - do 내 engine.start() 완료")
         } catch {
             print("Error starting the player: \(error.localizedDescription)")
         }
@@ -158,14 +165,18 @@ class Audio {
     
     func stop() {
         displayLink?.isPaused = true
-        engine.pause()
+//        engine.pause()
         audioPlayer.pause()
     }
     
+    /*
     func playOrPause() {
         isPlaying.value.toggle()
         
+        print("Audio클래스 - playOrPause()에서 isPlaying.value: \(isPlaying.value)")
+        
         if audioPlayer.isPlaying {
+            print("audioPlayer.isPlaying은?: \(audioPlayer.isPlaying)")
             displayLink?.isPaused = true
             audioPlayer.pause()
             print("audioPlayer.pause() executed")
@@ -175,10 +186,43 @@ class Audio {
             if needsFileScheduled {
                 scheduleAudioFile()
             }
-            audioPlayer.play()
-            print("audioPlayer.play() executed")
+            
+            do {
+                print("PlayOrPause 1. Audio클래스 - playOrPause() - do 안 - prepare() 후")
+                try engine.start()
+                print("PlayOrPause 2. Audio클래스 - playOrPause() - do 안 - engine.start() 후")
+                scheduleAudioFile()
+                isPlayerReady = true
+                print("PlayOrPause 3. Audio클래스 - playOrPause() - do 안 - isPlayerReady? : \(isPlayerReady)")
+                
+                audioPlayer.play()
+                print("PlayOrPause 4. Audio클래스 - playOrPause() - audioPlayer.play() executed")
+                
+            } catch {
+                print("PlayOrPause Error starting the player: \(error.localizedDescription)")
+            }
+            
+            
         }
     }
+    */
+    
+    func playOrPause() {
+        isPlaying.value.toggle()
+        
+        if audioPlayer.isPlaying {
+            displayLink?.isPaused = true
+            audioPlayer.pause()
+        } else {
+            displayLink?.isPaused = false
+            
+            if needsFileScheduled {
+                scheduleAudioFile()
+            }
+            audioPlayer.play()
+        }
+    }
+    
     
     func skip(forwards: Bool) {
         let timeToSeek: Double
