@@ -47,12 +47,6 @@ class RecordFileManager {
         recordName.value = MyDateFormatter.shared.timeToString(from: Date.now)
         print("recordName.value = \(recordName.value)")
     }
-    /*
-    func getFileURL() -> URL {
-        let path = getDocumentDirectory().appendingPathComponent(setRecordName())
-        return path as URL
-    }
-     */
     
     private func createDirectory() {
         guard let documentDirectory = documentDirectory else { return }
@@ -81,26 +75,12 @@ class RecordFileManager {
             print("Save Data Error")
         }
     }
-/*
+
     func loadRecordFile(_ url: URL) -> AVAudioFile? {
-//        guard let documentDirectory = documentDirectory else { return nil }
-//        createDirectory()
-        print("url: \(url)")
+        print("loadRecordFile에서의 url: \(url)")
         do {
             print("여기는?")
-            let recordfile = try AVAudioFile(forReading: url)
-            print("loadRecordFile func excuted: \(recordfile.url)")
-            return recordfile
-        } catch {
-            print("Loading Data from FileManager fail: \(url)")
-            return nil
-        }
-    }
-  */
-    func loadRecordFile(_ url: URL) -> AVAudioFile? {
-        print("url: \(url)")
-        do {
-            print("여기는?")
+            recorder.setupAudioRecorder()
             let recordfile = try AVAudioFile(forReading: url)
             print("loadRecordFile func executed: \(recordfile.url)")
             return recordfile
@@ -109,30 +89,9 @@ class RecordFileManager {
             return nil
         }
     }
-
-    /*
-    func loadRecordFile(_ url: String) -> AVAudioFile? {
-        guard let documentDirectory = documentDirectory else { return nil }
-        print("loadRecordFile 1")
-//        createDirectory()
-        let recordURL = documentDirectory.appendingPathComponent(url)
-        print("recordURL: \(recordURL)")
-        print("documentDirectory: \(documentDirectory)")
-
-        do {
-            let recordfile = try AVAudioFile(forReading: recordURL)
-            print("loadRecordFile func excuted: \(recordfile.url)")
-            return recordfile
-        } catch {
-            print("Loading Data from FileManager fail")
-            return nil
-        }
-    }
-    */
     
     func deleteRecordFile(_ recordName: String) {
         guard let documentDirectory = documentDirectory else { return }
-//        createDirectory()
         let recordURL = documentDirectory.appendingPathComponent("\(recordName).m4a")
         if fileManager.fileExists(atPath: recordURL.path) {
             do {

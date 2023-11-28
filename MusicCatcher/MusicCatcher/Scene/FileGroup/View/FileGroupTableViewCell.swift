@@ -34,35 +34,28 @@ class FileGroupTableViewCell: UITableViewCell {
     override func setSelected(_ selected: Bool, animated: Bool) {
         super.setSelected(selected, animated: animated)
         configureCellLayout()
-        // Configure the view for the selected state
     }
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         self.accessoryType = .disclosureIndicator
+        configureCellLayout()
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-        
     }
     
     private func configureCellLayout() {
         [groupImage, folderLabel, countLabel].forEach { contentView.addSubview($0) }
-        
         groupImage.anchor(leading: contentView.leadingAnchor,
                           trailing: folderLabel.leadingAnchor,
                           paddingLeading: 10,
                           paddingTrailing: 10)
         groupImage.centerY(inView: contentView)
         
-        folderLabel.anchor(leading: groupImage.trailingAnchor,
-                           trailing: countLabel.leadingAnchor,
-                           paddingTrailing: 10)
+        folderLabel.anchor(trailing: countLabel.leadingAnchor, paddingTrailing: 10)
         folderLabel.centerY(inView: contentView)
-        
-        countLabel.anchor(leading: folderLabel.trailingAnchor)
         countLabel.centerY(inView: contentView)
     }
-    
 }

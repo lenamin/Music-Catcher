@@ -16,7 +16,7 @@ class RecordingViewController: UIViewController, AVAudioRecorderDelegate, AVAudi
     let recorder = Recorder()
     let recorderFileManager = RecordFileManager.shared
     let recordingViewModel = RecordingViewModel()
-    let playViewModel = PlayViewModel()
+    let playViewModel = RecordingPlayerViewModel()
     var averagePowerList: [CGFloat] = []
     
     var isRecording: Bool = false
@@ -45,7 +45,8 @@ class RecordingViewController: UIViewController, AVAudioRecorderDelegate, AVAudi
         [leftListButton, middleRecordButton, rightStopButton].forEach { stackView.addArrangedSubview($0) }
         stackView.axis = .horizontal
         stackView.alignment = .center
-        stackView.distribution = .equalCentering
+        stackView.distribution = .fillProportionally
+//        stackView.distribution = .equalCentering
         stackView.spacing = 0
         return stackView
     }()
@@ -65,7 +66,7 @@ class RecordingViewController: UIViewController, AVAudioRecorderDelegate, AVAudi
     
     private lazy var middleRecordButton: UIButton = {
         let button = UIButton()
-        button.frame = CGRect(x: 0, y: 0, width: 96, height: 96)
+        button.frame = CGRect(x: 0, y: 0, width: 100, height: 100)
         button.setBackgroundImage(UIImage(named: "middle-circle.png"), for: .normal)
         button.isSelected = false
         button.setImage(recordImage, for: .normal)
@@ -80,7 +81,7 @@ class RecordingViewController: UIViewController, AVAudioRecorderDelegate, AVAudi
     
     private lazy var rightStopButton: UIButton = {
         let button = UIButton()
-        button.frame = CGRect(x: 0, y: 0, width: 66, height: 66)
+        button.frame = CGRect(x: 0, y: 0, width: 67, height: 67)
         button.setBackgroundImage(UIImage(named: "left-right-circle.png"), for: .normal)
         button.setImage(stopImage, for: .normal)
         button.addTarget(self,
@@ -100,23 +101,11 @@ class RecordingViewController: UIViewController, AVAudioRecorderDelegate, AVAudi
         configureUI()
     }
     
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        navigationController?.navigationBar.isHidden = false
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        navigationController?.navigationItem.largeTitleDisplayMode = .never
-        navigationController?.navigationBar.isHidden = false
-    }
-    
     @objc func recordButtonTapped(_: UIButton) {
         if isRecording { // 녹음중이면
             timer?.invalidate()
             recordingViewModel.recorder?.audioRecorder.stop()
             scrollWavedProgressView(translation: 0.0, point: CGPoint(x: 0.0, y: 0.0))
-//            initAudioPlayer()
             middleRecordButton.setImage(recordImage, for: .normal)
         } else { // 녹음중이 아닐 때 녹음 시작해야지
             middleRecordButton.setImage(pauseImage, for: .normal)
@@ -157,12 +146,15 @@ class RecordingViewController: UIViewController, AVAudioRecorderDelegate, AVAudi
                                                            context: " ",
                                                            folderName: "전체")
                 
-                let playListViewController = PlaylistViewController()
-                
-                playListViewController.recorderFileManager.recordName.value = self.recorderFileManager.recordName.value
-                playListViewController.recorderFileManager.myURL = self.recorderFileManager.myURL
-                
-                self.navigationController?.pushViewController(playListViewController, animated: true)
+                if let url = URL(string: self.recorderFileManager.myURL) {
+                    let recordingPlayerViewController = RecordingPlayerViewController(url)
+                    recordingPlayerViewController.recordingPlayerViewModel.url = url
+                    
+                    recordingPlayerViewController.recorderFileManager.recordName.value = self.recorderFileManager.recordName.value
+                    recordingPlayerViewController.recorderFileManager.myURL = self.recorderFileManager.myURL
+
+                    self.navigationController?.pushViewController(recordingPlayerViewController, animated: true)
+                }
             }
         })
         let cancel = UIAlertAction(title: "삭제", style: .destructive, handler: { _ in
@@ -190,8 +182,9 @@ class RecordingViewController: UIViewController, AVAudioRecorderDelegate, AVAudi
         let thisAudioModel = AudioModel(url: url, title: title, tags: tags, date: date, context: context, folderName: folderName)
 
         coreDataManager.createAudioData(with: thisAudioModel) {
-            self.coreDataManager.audioEntityArray = self.coreDataManager.getAudioSavedArrayFromCoreData() {
-                print("완료됨")
+             self.coreDataManager.getAudioSavedArrayFromCoreData() { results in
+                 self.coreDataManager.audioEntityArray = results
+                print("createAudioData 완료 : \(results)")
             }
         }
         debugPrint("createNewAudioData executed")
@@ -201,19 +194,15 @@ class RecordingViewController: UIViewController, AVAudioRecorderDelegate, AVAudi
 extension RecordingViewController {
     private func configureUI() {
         audioWaveView.setHeight(height: 160)
-        audioWaveView.anchor(top: view.safeAreaLayoutGuide.topAnchor,
-                             leading: view.leadingAnchor,
-                             bottom: timeLabel.topAnchor,
-                             trailing: view.trailingAnchor,
-                             paddingTop: 120,
-                             paddingBottom: 20)
+        audioWaveView.anchor(leading: view.leadingAnchor,
+                             trailing: view.trailingAnchor)
+        audioWaveView.centerY(inView: view)
         timeLabel.anchor(top: audioWaveView.bottomAnchor,
                          bottom: buttonStackView.topAnchor,
-                         paddingBottom: 180)
+                         paddingTop: 30)
         timeLabel.centerX(inView: view)
         buttonStackView.anchor(bottom: view.safeAreaLayoutGuide.bottomAnchor)
         buttonStackView.centerX(inView: view)
-        buttonStackView.setHeight(height: 96)
     }
 }
 
