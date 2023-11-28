@@ -28,7 +28,7 @@ class AnalysisResultViewController: UIViewController, SoundClassifierDelegate {
     private var resultsObserver = ResultsObserver.shared
     private var previousPrediction = [String]()
     
-    private let soundManager = SoundManager()
+    let soundManager = SoundManager()
     private var identifierTranslationHelper = IdentifierTranslationHelper()
     
     private var disposeBag = DisposeBag()
@@ -41,22 +41,6 @@ class AnalysisResultViewController: UIViewController, SoundClassifierDelegate {
     var pulseLayers = [CAShapeLayer]()
     private var backgroundImage = UIImageView(image: UIImage(named: "background-purple"))
     
-    private var notifyButton: UIButton = {
-        let button = UIButton()
-        button.makeRounded(radius: 35)
-        button.createButton(title: "분석 중지하기", titleSize: 28, titleColor: .white, backgroundColor: .black)
-        button.layer.shadowRadius = 20
-        button.layer.shadowColor = UIColor.black.cgColor
-        button.isEnabled = true
-        button.addTarget(self, action: #selector(stopButtonTapped(_ :)), for: .touchUpInside)
-        return button
-    }()
-    
-    @objc func stopButtonTapped(_ sender: Any) {
-        soundManager.stopAudioEngine()
-        self.dismiss(animated: true)
-    }
-    
     var resultIdentifier: String = ""
     
     override func viewDidLoad() {
@@ -66,7 +50,7 @@ class AnalysisResultViewController: UIViewController, SoundClassifierDelegate {
         Task { await createPulse() }
         view.backgroundColor = .white
         view.addSubview(backgroundImage)
-        [minuteLabel, soundNotificationLabel, soundResultsLabel, notifyButton].forEach { backgroundImage.addSubview($0) }
+        [minuteLabel, soundNotificationLabel, soundResultsLabel].forEach { backgroundImage.addSubview($0) }
         
         setLabel()
         configureLayout()
@@ -103,6 +87,12 @@ class AnalysisResultViewController: UIViewController, SoundClassifierDelegate {
                 }
             })
             .disposed(by: disposeBag)
+    }
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        soundManager.stopAudioEngine()
+        debugPrint("audio engine stopped")
     }
     
     private func createPulse() async {
@@ -157,7 +147,7 @@ class AnalysisResultViewController: UIViewController, SoundClassifierDelegate {
         
         let opacityAnimation = CABasicAnimation(keyPath: #keyPath(CALayer.opacity))
         opacityAnimation.duration = 3.0
-        opacityAnimation.fromValue = 0.9
+        opacityAnimation.fromValue = 0.8
         opacityAnimation.toValue = 0.1
         opacityAnimation.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeOut)
         opacityAnimation.repeatCount = .greatestFiniteMagnitude
@@ -173,14 +163,9 @@ class AnalysisResultViewController: UIViewController, SoundClassifierDelegate {
         soundNotificationLabel.anchor(top: minuteLabel.bottomAnchor, leading: backgroundImage.leadingAnchor, paddingTop: 8, paddingLeading: 21)
         soundNotificationLabel.setHeight(height: 50)
         
-        soundResultsLabel.anchor(top: soundNotificationLabel.bottomAnchor, leading: view.leadingAnchor, bottom: notifyButton.topAnchor, trailing: view.trailingAnchor)
+        soundResultsLabel.anchor(top: soundNotificationLabel.bottomAnchor, leading: view.leadingAnchor, bottom: backgroundImage.bottomAnchor, trailing: view.trailingAnchor)
         
         soundResultsLabel.setHeight(height: 400)
-        
-        notifyButton.centerX(inView: backgroundImage)
-        notifyButton.setHeight(height: 68)
-        notifyButton.setWidth(width: 197)
-        notifyButton.anchor(bottom: backgroundImage.bottomAnchor, paddingBottom: 100)
     }
     
     private func setLabel() {
