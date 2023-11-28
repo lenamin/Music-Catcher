@@ -1,6 +1,7 @@
 {
   "images" : [
     {
+      "filename" : "Music_Catcher_AppIcon.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
