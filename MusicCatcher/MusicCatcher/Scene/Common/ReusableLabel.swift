@@ -19,7 +19,7 @@ class ReusableLabel: UILabel {
         self.labelFont = labelFont
         super.init(frame: .zero)
         
-        self.translatesAutoresizingMaskIntoConstraints = false //For AutoLayout
+        self.translatesAutoresizingMaskIntoConstraints = false 
         let attributedString = NSMutableAttributedString(string: labelText)
         self.attributedText = attributedString
     }
