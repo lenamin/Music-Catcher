@@ -21,49 +21,39 @@ class TabBarController: UITabBarController, UITabBarControllerDelegate {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        
-        
         // record tap
-        let recordViewTab = ReadyRecordViewController()
-        let recordViewTabBarItem = UITabBarItem(title: "record",
+        let recordViewTab = UINavigationController(rootViewController: ReadyRecordViewController())
+        let recordViewTabBarItem = UITabBarItem(title: "녹음",
                                                 image: micImage,
                                                 selectedImage: micFillImage)
         
         recordViewTab.tabBarItem = recordViewTabBarItem
         
         // file tab
-        let fileViewTab = FileGroupViewController()
-        let fileViewTabBarItem = UITabBarItem(title: "file",
+        let fileViewTab = UINavigationController(rootViewController: FileGroupViewController())
+        let fileViewTabBarItem = UITabBarItem(title: "파일",
                                               image: fileImage,
                                               selectedImage: fileFillImage)
-        
-        
+        fileViewTab.navigationController?.navigationBar.isHidden = false
         fileViewTab.tabBarItem = fileViewTabBarItem
         
         // analysis
-        let analysisTab = AnalysisViewController()
-        let favoriateTabBarItem = UITabBarItem(title: "analysis",
+        let analysisTab = UINavigationController(rootViewController:AnalysisViewController())
+        let favoriateTabBarItem = UITabBarItem(title: "분석",
                                                image: analysisImage,
                                                selectedImage: analysisImage)
         
         analysisTab.tabBarItem = favoriateTabBarItem
         
         // setting tab
-        let settingTab = ReadyRecordViewController()
-        let settingViewTabBarItem = UITabBarItem(title: "setting",
+        let settingTab = UINavigationController(rootViewController: SettingTableViewController())
+        let settingViewTabBarItem = UITabBarItem(title: "설정",
                                                  image: gearImage,
                                                  selectedImage: gearFillImage)
         
         settingTab.tabBarItem = settingViewTabBarItem
-        // TODO: 파일, 즐겨찾기, 세팅 뷰컨트롤러 추가하기
         
         self.viewControllers = [recordViewTab, fileViewTab, analysisTab, settingTab]
-    }
-    
-    override func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
-        // TODO: 탭바아이템 선택했을 떄 화면 전환 구현하기
-        print("tabbar가 선택되었습니다")
-        
     }
 }
 
